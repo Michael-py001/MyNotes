@@ -48,3 +48,53 @@ options参数如下：
 
 ## 
 
+
+
+## 实际案例
+
+```js
+this.$Request("Sharing.SharingGoods", {
+        goods_id: this.goodsId
+    },{
+        // codeHandle:{
+        //   0:(res)=>{
+        //     console.log("-------------:",res)
+        //     this.$ShowToast("商品已下架").then(()=>{
+        //       this.$nav('back')
+        //     })
+        //   }
+        // },
+        ignoreToastCode:[0],
+        // toastHandle:true
+    }
+                 ).then(()=>())
+```
+
+## codeHandle
+
+在$Post/Get/Request的第三个参数传入一个对象，key为code，value为处理函数
+
+## ignoreToastCode
+
+使用前提：Request/lib.js --> CheckIgnoreToastCode 返回值需要为：
+
+```js
+return (_ignoreToastCode.indexOf(Number(res.code)) >= 0) && res.msg
+```
+
+在$Post/Get/Request的第三个参数传入一个数组，内容为需要忽略提示的返回码
+
+也可以在全局配置Config.js中设置
+
+![image-20211023175302370](https://i.loli.net/2021/10/23/nAbCG5FrBvoSWlh.png)
+
+## toastHandle
+
+toastHandle的功能是控制弹出错误提示
+
+设置为false时，不提示，默认/true都会弹出提示,
+
+优先级比`ignoreToastCode`大，即使不设置ignoreToastCode，只要设置了false，都不会弹提示
+
+但是不会影响`codeHandle`的处理函数执行
+
