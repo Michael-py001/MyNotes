@@ -7,7 +7,7 @@ options参数如下：
 | 字段            | 类型    | 默认值     | 说明                                                         |
 | --------------- | ------- | ---------- | ------------------------------------------------------------ |
 | header          | Object  | {}         | 请求头，也可以在全局配置                                     |
-| loading         | Boolean | false/true | Get 方法默认是false，Post 方法默认是true                     |
+| loading         | Boolean | false/true | 是否显示loding加载图标 Get 方法默认是false，Post 方法默认是true |
 | loadingText     | String  | 加载中     | 加载显示类型                                                 |
 | successCode     | Array   | []         | 定义成功返回的code，默认是全局配置 ，成功的code不会做提示处理，也会做正常的返回 |
 | ignoreToastCode | Array   | []         | 默认读取全局配置、忽略toast提示code                          |
