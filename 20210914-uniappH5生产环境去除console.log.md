@@ -1,4 +1,8 @@
-## uniappH5生产环境去除console.log
+# uniappH5生产环境去除console.log
+
+## 方案一
+
+> uniapp中如果开启了TreeShaking树摇会导致不生效
 
 vue.config.js 
 
@@ -21,3 +25,16 @@ module.exports = {
 ```
 
 uniapp内置了`terser`，在`chainWebpack`中使用。
+
+
+
+## 方案二
+
+在`main.js`中插入以下代码
+
+```js
+if (process.env.NODE_ENV !== "development") {  
+    console.log = () => {}  
+}  
+```
+

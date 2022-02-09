@@ -44,7 +44,9 @@ options参数如下：
 
 ## 上传统一接口
 
-每个项目的上传图片接口都一样：`/Upload/UploadPublicApi/uploadFile`
+每个项目的上传图片接口都一样：CMS `/Upload/UploadPublicApi/uploadFile` 或者 `/common/upload.api/imageUpload`
+
+逸店 `/index.php?s=/api/upload/image`
 
 ## 
 
