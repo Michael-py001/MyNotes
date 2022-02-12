@@ -3,7 +3,7 @@
 <u-icon name="map" size="35"></u-icon> //地图
 <u-icon name="arrow-up" size="35"></u-icon> //上箭头
 <u-icon name="arrow-down" size="35"></u-icon> //x
-
+<u-icon name="search" size="35"></u-icon> //搜索
 <u-icon name="close" size="35"></u-icon>  //关闭×
 ```
 
