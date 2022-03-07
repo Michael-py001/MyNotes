@@ -1,0 +1,103 @@
+### 类型转换
+
+#### 数据类型：
+
+- **JavaScript的数据类型，共有六种。分别是undefined、null、boolean、number、string、object（ES6新增第七种Symbol一种数据类型，它的实例是唯一且不可改变的类型的值）。**
+
+#### parseInt()
+
+> 把第一个非数字字符之前的数字转成整数
+
+```js
+// 把第一个非数字字符之前的数字转成整数
+	console.log( parseInt("23.23") ); // 数字23
+	console.log( parseInt("23a.23") ); // 数字23
+	console.log( parseInt("bb23a") ); // NaN 
+	console.log( parseInt("237.2s3") ); // 数字237
+```
+
+#### parseFloat()
+
+> 把第一个非数字且非小数点字符之前的数字转成小数
+
+```js
+// 把第一个非数字且非小数点字符之前的数字转成小数
+console.log( parseFloat("23.23") );//23.23
+console.log( parseFloat("23a.23") );//23
+console.log( parseFloat("bb23a") );//NaN
+console.log( parseFloat("237.2s3") );//237.2
+```
+
+#### Number()
+
+> 其他类型转成数字类型 除了数字之外,只要含有非小数点其他字符结果就是NaN
+
+```js
+// 其他类型转成数字类型 除了数字之外,只要含有非小数点其他字符结果就是NaN
+//NaN的数据类型也是Number
+// Number() true---->1 false------>0
+console.log( Number("23.23a") );// NaN
+console.log( Number("23.23") ); //23.23  
+console.log( Number("23a") ); //NaN
+console.log( Number("23") ); //23
+console.log( Number(true) );//1
+console.log( Number(false) );//0 
+```
+
+#### Boolean()
+
+> Boolean() 其他类型转成布尔类型 非空字符串转成true 空字符串转成false
+
+```js
+// Boolean() 其他类型转成布尔类型  非空字符串转成true 空字符串转成false
+// 非0数字转成true 0转成false
+console.log( Boolean("hello") ); // true 
+console.log( Boolean("23.23") ); //  true
+console.log( Boolean("") );//false
+console.log( Boolean(23) );//true
+console.log( Boolean(0) );//false
+```
+
+
+
+#### toString()
+
+> 括号不带代表转成字符串，带数字则表示进制转换
+
+```js
+var num = 19;
+var newNum = num.toString(); //类型转换
+alert( typeof newNum );
+
+var newNum = num.toString(8); //进制转换
+alert( newNum );
+```
+
+### 类型判断
+
+#### isNaN()
+
+> 判断非数字   纯数字字符串会自动转成数值
+
+```js
+// NaN 数字类型 无法表示的数字
+//判断非数字      纯数字字符串会自动转成数值
+console.log(isNaN("2e"));//true 不是个数字是true
+console.log(isNaN("22"));//false 是个数字是false
+console.log(isNaN("22.34"));//false
+console.log(isNaN(34)); //false
+console.log(isNaN("abs")); //true
+```
+
+### eval()
+
+> 把括号内的字符串转成JS运行
+
+```js
+// eval() 把括号内的字符串转成JS运行
+var a = 10;
+//alert( eval("2+a") );
+console.log(eval("2+a"));
+eval("alert(34)");
+```
+
