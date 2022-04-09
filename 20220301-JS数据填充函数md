@@ -1,19 +1,23 @@
-# 20220301-JS数据填充【未写】
+# 20220301-JS数据填充
 
-船务大厅
+- 传入数组，目标长度，如果目标长度 > 传入数组长度，内部自动循环传入数组填充至目标长度
+- 如果目标长度 < 传入数组长度  ，则按目标长度在传入数组截取对应长度
 
 ```js
-// 数组填充
+	// 数组填充
       /**
       * @param {Array}   target_list 传入的数组
       * @param {Number}  fill_to_num 填充目标长度
       **/
-      calcFillList(target_list,fill_to_num=20) {
+      calcFillList(target_list,fill_to_num=10) {
         let fill_target_list = []
         let cur_news_length = target_list.length // 18 当前数量
-        let less_length = fill_to_num-cur_news_length //需要填充的数量 20-18 = 2
+        if(fill_to_num<cur_news_length) { //如果目标填充数量小于当前传入数量，则按把传入数组按填充数量截取对应长度
+            return target_list.splice(0,fill_to_num)
+        }
+        let less_length = fill_to_num-cur_news_length //需要填充的数量
         let for_num = 0  //循环填充当前有的数组次数
-        if(less_length>cur_news_length) {
+        if(less_length>0 && less_length>cur_news_length) {
           for_num = parseInt(less_length/cur_news_length)
         }
         let less_num = less_length - for_num*cur_news_length //最后填充的数量
