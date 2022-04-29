@@ -61,10 +61,13 @@
 
 `display: flex;` 使子元素变成弹性元素，一行排列；
 
+`flex:1`:撑满整个div的宽度
+
 `width: max-content` ： width:max-content表示采用内部元素宽度值最大的那个元素的宽度作为最终容器的宽度。如果出现文本，则相当于文本不换行
 
 ```css
 display: flex;
+flex:1;
 width: max-content;
 ```
 
