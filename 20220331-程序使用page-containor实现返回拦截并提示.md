@@ -29,3 +29,50 @@
 
 
 ![page](https://s2.loli.net/2022/04/23/rdifC9bvTehxQRn.gif)
+
+## 分析
+
+了解清楚这个组件后，再来看下我们的需求，怎么把这个组件的功能用在这个需求上。
+
+这个组件的机制是：弹出显示后-->返回-->组件隐藏，
+
+我们的需求：页面显示-->返回-->弹出提示
+
+根据这两者分析，我们可以在一开始把页面写在`page-container`里面，把提示放在外面。这样按返回时，页面就会消失，弹窗就会显示。
+
+## 代码实现
+
+```html
+<template>
+<div>
+  <page-container :duration="0" :show="showExit" @beforeleave="open">
+    <scroll-view :scroll-y="true" class="scroll" @refresherrefresh="refresh"  :refresher-triggered="pullDownStatus">
+      <TabBars  :me="true" :list="tab_list" :tab_active.sync="tab_index" tab_height="105"/>
+      <div class="DeviceParams">
+      
+        <div v-show="tab_index==0">
+          <SystemParams :id="id" ref="SystemParams"></SystemParams>
+        </div>
+        
+        <div v-show="tab_index==1">
+          <UserParams :isNotSave.sync="isNotSave" :id="id" ref="UserParams"></UserParams>
+        </div>
+        
+      </div>
+      <div class="refresh" @click="refresh">
+        <img :class="{'animate':pullDownStatus}" src="/static/images/refresh.png" alt="">
+      </div>
+    </scroll-view>
+  </page-container>
+  <ConfirmPopup :showCancel="true" confirmText="确认"  ref="exitPopup" @confirm="confirmPopup" @cancel="$nav('back')">
+      <div class="popup-content">
+        您有修改未保存，是否保存？
+      </div>
+  </ConfirmPopup>
+  <Progress :finish.sync="finish" ref="Progress"></Progress>
+</div>
+  
+</template>
+```
+
+实际中发现，`page-container`里面不能像正常写页面那样可以滑动，所以这里用`scroll-view`做成一个滚动区域，这样就跟正常页面没有什么大的区别了，目前发现的不足就是，不能用自带的页面下拉刷新，但是可以使用`scroll-view`的自定义下拉实现。
