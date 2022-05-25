@@ -28,7 +28,7 @@
 
 ![image-20220513152722760](https://s2.loli.net/2022/05/13/njIQWzFUmVhkZ94.png)
 
-返回数组形式, 返回`[1, 2]`，也就是`rowspan = 1 , colspan = 2`，实际效果是合并了两列。
+返回数组形式, 返回`[1, 2]`，也就是`rowspan = 1 , colspan = 2`，含义：在这个格子，`rowspan `行数合并为`1行`，列数合并为`2行`.
 
 ```js
 const arraySpanMethod = ({
@@ -115,3 +115,48 @@ objectSpanMethod({
 合并的效果
 
 ![image-20220513153809087](https://s2.loli.net/2022/05/13/x3JUwQS1YECWRlu.png)
+
+案例2
+
+```js
+arraySpanMethod({
+    row,
+    column,
+    rowIndex,
+    columnIndex
+}) {
+    if (rowIndex === 0) {
+        if (columnIndex === 0) {
+            return [0, 0]
+        } else if (columnIndex === 1) {
+            return [0, 0]
+        } else if (columnIndex === 2) {
+            return [0, 0]
+        } else if (columnIndex === 3) {
+            return [1, 4]
+        }
+    }
+},
+```
+
+![image-20220516134431748](https://s2.loli.net/2022/05/16/gYoVwDiTbMqfB1j.png)
+
+```js
+if (rowIndex === 0) {
+    if (columnIndex === 0) {
+        return [0, 0]
+    } else if (columnIndex === 1) {
+        return [0, 0]
+    } else if (columnIndex === 2) {
+        return [0, 0]
+    } else if (columnIndex === 3) {
+        return [1, 2]
+    }
+}
+```
+
+![image-20220516114539990](https://s2.loli.net/2022/05/16/UqRvHrDcGXpmiW8.png)
+
+如果不处理：
+
+![image-20220516135117122](https://s2.loli.net/2022/05/16/SFCxd4jiHG9rseh.png)
