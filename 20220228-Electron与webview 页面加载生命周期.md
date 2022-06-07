@@ -1,4 +1,6 @@
-# Electron webview 页面加载生命周期
+# Electron & webview 页面加载生命周期
+
+## webview页面加载生命周期
 
 1.did-start-loading    页面开始加载
 
@@ -20,5 +22,10 @@
 
 10.did-stop-loading        页面停止加载
 
-
 链接：https://juejin.cn/post/6844903862806003726
+
+## Electron的生命周期
+
+[Electron 生命周期看这篇就够了 - 掘金 (juejin.cn)](https://juejin.cn/post/6937535140222468110)
+
+![image-20220526134909205](https://s2.loli.net/2022/05/26/tBAGfiIPbkCxnDy.png)
