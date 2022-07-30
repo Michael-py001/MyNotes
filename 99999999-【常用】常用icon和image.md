@@ -1,3 +1,5 @@
+图标
+
 ```html
 <u-icon name="arrow-right" size="28" color="#c4c4c4"></u-icon>  //右箭头
 <u-icon name="map" size="35"></u-icon> //地图
@@ -9,7 +11,7 @@
 
 
 
-
+图片
 
 ```html
 <u-image width="88rpx" height="88rpx" border-radius="50%" :src="info.avatar" ></u-image>
@@ -19,5 +21,11 @@
          <u-loading ></u-loading>
       </template>
       </u-image>
+```
+
+选中框
+
+```html
+ <u-checkbox  v-model="item.checked" @change="checkboxChange" shape="circle" size="40" active-color="#4CBCA5">{{item.name}}</u-checkbox>
 ```
 

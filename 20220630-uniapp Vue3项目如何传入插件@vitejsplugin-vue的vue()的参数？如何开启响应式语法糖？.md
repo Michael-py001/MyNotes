@@ -106,6 +106,7 @@ function uniPlugin(rawOptions = {}){
 那么开启显式启用响应性语法糖就很简单了:
 
 ```js
+//vite.config.js
 import { defineConfig } from "vite";
 import uni from "@dcloudio/vite-plugin-uni";
 
