@@ -2,7 +2,7 @@
 
 ```html
 <u-icon name="arrow-right" size="28" color="#c4c4c4"></u-icon>  //右箭头
-<u-icon name="map" size="35"></u-icon> //地图
+<u-icon name="map" size="35"  color="#888888"></u-icon> //地图
 <u-icon name="arrow-up" size="35"></u-icon> //上箭头
 <u-icon name="arrow-down" size="35"></u-icon> //x
 <u-icon name="search" size="35"></u-icon> //搜索
@@ -29,3 +29,4 @@
  <u-checkbox  v-model="item.checked" @change="checkboxChange" shape="circle" size="40" active-color="#4CBCA5">{{item.name}}</u-checkbox>
 ```
 
+![评分 (2)](C:/Users/PM/Downloads/%E8%AF%84%E5%88%86%20(2).png)

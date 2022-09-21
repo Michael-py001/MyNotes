@@ -112,7 +112,7 @@ Component({
 
 如果直接使用`script setup`是不行的，因为uniapp的`@dcloudio/uni-app`并没有导出这个`options`方法。
 
-所以你可以同时使用`<script setup>`和`<script>`标签
+但是你可以同时使用`<script setup>`和`<script>`标签
 
 ```html
 <script >
