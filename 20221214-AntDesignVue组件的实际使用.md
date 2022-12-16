@@ -1,3 +1,11 @@
+# 全局属性
+
+在所有的组件上，添加`class` / `style` 属性，可以直接添加类名，或者style属性。
+
+![image-20221215152328443](https://f.pz.al/pzal/2022/12/15/839ba8d467be1.png)
+
+![image-20221215152414971](https://f.pz.al/pzal/2022/12/15/3cf03cd7d7e67.png)
+
 # Form 表单
 
 > [Form 表单](https://2x.antdv.com/components/form-cn#API)
@@ -94,9 +102,52 @@ export default{
 </a-col>
 ```
 
+## 表单的自动校验
+
+如果在`form-item`中的button组件，设置`html-type='submit'`，那么点击就会自动校验表单，通过后会触发`form`组件的`@finish="handleFinish"`事件。
+
+```html
+<a-form-item :wrapper-col="{ span: 14, offset: 4 }">
+    <a-button type="primary" html-type="submit">Submit</a-button>
+    <a-button style="margin-left: 10px" @click="resetForm">Reset</a-button>
+</a-form-item>
+```
+
+## 表单移除某一项验证
+
+`clearValidate` : 移除表单项的校验结果。传入待移除的表单项的 name 属性或者 name 组成的数组，如不传则移除整个表单的校验结果
+
+```js
+/** 输入框切换可用 */
+toggleInput(e, _key){
+    const _check = e.target.checked;
+    // 不选中清空
+    if(!_check){
+        this.formData[_key] = null;
+    }
+    // 移除验证
+    if(this.$refs.formRef){
+        this.$refs.formRef.clearValidate(_key);
+    }
+    // 验证规则切换是否必填
+    this.rules[_key][0].required = _check;
+},
+```
+
+![image-20221216140203857](https://f.pz.al/pzal/2022/12/16/d761149189190.png)
+
+![image-20221216140226715](https://f.pz.al/pzal/2022/12/16/3f70962044cbf.png)
+
 ## row col -- Grid栅格布局的使用
 
 > [Grid栅格](https://2x.antdv.com/components/grid-cn)
+>
+> 布局的栅格化系统，我们是基于行（row）和列（col）来定义信息区块的外部框架，以保证页面的每个区域能够稳健地排布起来。下面简单介绍一下它的工作原理：
+>
+> - 通过`row`在水平方向建立一组`column`（简写 col）
+> - 你的内容应当放置于`col`内，并且，只有`col`可以作为`row`的直接元素
+> - 栅格系统中的列是指 1 到 24 的值来表示其跨越的范围。例如，三个等宽的列可以使用 `` 来创建
+> - 如果一个`row`中的`col`总和超过 24，那么多余的`col`会作为一个整体另起一行排列（换行就设置每个col24即可）
 
 ![image-20221214142356456](https://f.pz.al/pzal/2022/12/14/a2b8080b80729.png)
 
@@ -122,6 +173,45 @@ export default{
 表单一定会包含表单域，表单域可以是输入控件，标准表单域，标签，下拉菜单，文本域等。包含需要验证的内容时，需要使用。
 
 ![image-20221214143440141](https://f.pz.al/pzal/2022/12/14/2f4397bec001a.png)
+
+## useForm的使用
+
+![image-20221215140053040](https://f.pz.al/pzal/2022/12/15/6ec4850ed72ec.png)
+
+```js
+import { Form } from 'ant-design-vue';
+setup() {
+    const useForm = Form.useForm;
+    
+     const modelRef = reactive({
+          local: '',
+          address: '',
+        });
+        const modelRules = reactive({
+          local: [
+            {
+              required: true,
+              validator: validateLocal,
+            },
+          ],
+          address: [
+            {
+              required: true,
+              message: '请输入详细地址',
+            },
+          ],
+        });
+	const { resetFields, validate, validateInfos } = useForm(modelRef, modelRules);
+    return {
+        resetFields,
+        validate,
+        validateInfos
+    }
+}
+
+```
+
+
 
 # cascader 级联选择
 
@@ -240,6 +330,55 @@ export default defineComponent({
 
 
 ```
+
+## 选中默认项
+
+### label-in-value
+
+> 默认情况下 `onChange` 里只能拿到 value，如果需要拿到选中的节点文本 label，可以使用 `labelInValue` 属性。 选中项的 label 会被包装到 value 中传递给 `onChange` 等函数，此时 value 是一个对象。
+
+这种方法可以设置value为一个对象，而不是字符串，即可设置默认值。
+
+![image-20221216102730785](https://f.pz.al/pzal/2022/12/16/5bc1b44aff907.png)
+
+### 填充默认值
+
+```js
+ // 下拉列表
+  let optionsOne = ref([
+    {
+      label:'资源性资产',
+      value:'1'
+    },
+    {
+      label:'经营性资产',
+      value:'2'
+    },
+    {
+      label:'非经营性资产',
+      value:'3'
+    },
+  ])
+  //筛选第一个选项，取出value值
+   const firstSelect = computed(()=>{
+    const first = optionsOne.value[1]
+    return first.value
+  })
+   // 表单的选项组件数据
+  const chooseTypesModelRef = ref({
+    typeOne:firstSelect.value,
+    typeTwo:null,
+    typeThree:null,
+    typeFour:null,
+    typeFive:null
+  })
+```
+
+![image-20221216103133770](https://f.pz.al/pzal/2022/12/16/5ae59efb8fd29.png)
+
+而且会在表单校验的输出，返回整个对象，方便取到label的值：
+
+![image-20221216103917068](https://f.pz.al/pzal/2022/12/16/fe7fb38c7f390.png)
 
 # input 输入框
 
@@ -452,3 +591,69 @@ type:number 输入数字
 ![image-20221214164227639](https://f.pz.al/pzal/2022/12/14/92dcdda4b2b53.png)
 
 ![image-20221214164438917](https://f.pz.al/pzal/2022/12/14/3d38bbe16f044.png)
+
+# divider 分隔线
+
+区隔内容的分割线。
+
+```html
+<!-- 分隔线 -->
+<a-divider style="border-color: #afafaf" dashed></a-divider>
+```
+
+![image-20221215105840382](https://f.pz.al/pzal/2022/12/15/624938b69d558.png)
+
+```html
+<a-divider orientation="left">
+    <span>同步信息</span>
+</a-divider>
+```
+
+![image-20221215151330512](https://f.pz.al/pzal/2022/12/15/51af74130f70e.png)
+
+# tabs 标签页
+
+用于有流程步骤的页面，里面的每一块内容用`tab-pane`包裹。在tabs上用`v-model:activeKey="activeTab"`切换激活的标签。
+
+![image-20221215101932027](https://f.pz.al/pzal/2022/12/15/be829f3f21d50.png)
+
+![image-20221215102357524](https://f.pz.al/pzal/2022/12/15/a0bfdac29fe94.png)
+
+## 禁用点击
+
+有些需要完成当前页面的表单才能进入下一步，这时需要禁用，防止用户点击切换。
+
+![image-20221216145803462](https://f.pz.al/pzal/2022/12/16/99dab99e1acc2.png)
+
+# 手写原生table表格
+
+## 套用antd的样式类名
+
+套用antd的样式类名，添加到自己写的table标签上，主要有一下类名：
+
+- ant-table 
+- ant-table-bordered 
+- ant-table-thead  
+- ant-table-header-column
+- ant-table-tbody
+
+![image-20221216191044991](https://f.pz.al/pzal/2022/12/16/6d652931ab157.png)
+
+还可以自己添加类名，对表格添加样式:
+
+![image-20221216191857368](https://f.pz.al/pzal/2022/12/16/e3ab3dc55dcf5.png)
+
+## 在原生表格中插入antd table
+
+![image-20221216191751507](https://f.pz.al/pzal/2022/12/16/9d762565010e7.png)
+
+# 打包下载
+
+> 路径入口：资产管理->详情页
+> http://localhost:5001/globalApply/projectAbnormal?id=1603662498414870531&isGlobalApply=1
+
+
+
+![image-20221216191955466](https://f.pz.al/pzal/2022/12/16/ca36fbb62af6a.png)
+
+![image-20221216192017653](https://f.pz.al/pzal/2022/12/16/6df203c7c6fa7.png)
