@@ -657,3 +657,13 @@ type:number 输入数字
 ![image-20221216191955466](https://f.pz.al/pzal/2022/12/16/ca36fbb62af6a.png)
 
 ![image-20221216192017653](https://f.pz.al/pzal/2022/12/16/6df203c7c6fa7.png)
+
+
+
+# descriptions 描述列表
+
+> [Descriptions](https://2x.antdv.com/components/descriptions-cn)
+
+![image-20221227173124563](https://f.pz.al/pzal/2022/12/27/b9bec76a42214.png)
+
+ ![image-20221227173313648](https://f.pz.al/pzal/2022/12/27/05e5773e8175a.png)
