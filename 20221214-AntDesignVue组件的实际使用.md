@@ -102,6 +102,10 @@ export default{
 </a-col>
 ```
 
+## 表单校验需要写对应的name
+
+![image-20221221173951725](https://f.pz.al/pzal/2022/12/21/d2bbf74a07c45.png)
+
 ## 表单的自动校验
 
 如果在`form-item`中的button组件，设置`html-type='submit'`，那么点击就会自动校验表单，通过后会触发`form`组件的`@finish="handleFinish"`事件。
@@ -440,6 +444,10 @@ type:number 输入数字
 
 # upload 
 
+## 图片上传
+
+
+
 ## 视频上传
 
 视频上传组件位置
@@ -632,6 +640,8 @@ type:number 输入数字
 套用antd的样式类名，添加到自己写的table标签上，主要有一下类名：
 
 - ant-table 
+- ant-table-default
+- ant-table-scroll-position-left
 - ant-table-bordered 
 - ant-table-thead  
 - ant-table-header-column
@@ -647,6 +657,11 @@ type:number 输入数字
 
 ![image-20221216191751507](https://f.pz.al/pzal/2022/12/16/9d762565010e7.png)
 
+在表格中插入一张图片：
+![image-20221216192217889](https://f.pz.al/pzal/2022/12/16/ef42799c75644.png)
+
+![image-20221216192242099](https://f.pz.al/pzal/2022/12/16/80ec2d785c5d9.png)
+
 # 打包下载
 
 > 路径入口：资产管理->详情页
@@ -657,3 +672,119 @@ type:number 输入数字
 ![image-20221216191955466](https://f.pz.al/pzal/2022/12/16/ca36fbb62af6a.png)
 
 ![image-20221216192017653](https://f.pz.al/pzal/2022/12/16/6df203c7c6fa7.png)
+
+# cascader/select组件
+
+| options | options 数据，如果设置则不需要手动构造 selectOption 节点 | array<{value, label, [disabled, key, title]}> | []   |
+| ------- | -------------------------------------------------------- | --------------------------------------------- | ---- |
+|         |                                                          |                                               |      |
+
+组件的`options`参数，通常需要缓存到vuex中，后续打开页面，会直接从store中取出，减少请求次数：
+
+![image-20221219151142169](https://f.pz.al/pzal/2022/12/19/e643d429773c1.png)
+
+使用方法：
+
+从外部文件引入方法
+
+```js
+import getSelectOptions from './composables/getSelectOptions'; // 获取下拉选项
+...
+setup(){
+	 const { organizationList} = getSelectOptions();
+    return {
+        organizationList
+    }
+}
+```
+
+数据会涉及到操作vuex，存储到store
+
+```js
+//organizationList.js
+export default function() {
+    // 组织机构列表
+  const organizationList = ref([]);
+  /** 获取当前用户组织机构及其下属机构 */
+  const getOrganization = async () => {
+    const res = await store.dispatch('user/getUserOrganizationList');
+    if (res && res.code === 200) {
+        // 从store获取机构
+      const _list = store.state.user.userOrganizationList || [];
+      organizationList.value = _list;
+      return res;
+    } else {
+      AMessage.error(res.message);
+      return false;
+    }
+  };
+    return {
+        organizationList
+    }
+} 
+```
+
+dispatch派发的action: 
+
+1. 会检查数据是否已经存在state中，如果没有，则请求接口获取数据
+2. 使用了async await语法，返回的需要是一个promise
+
+![image-20221219181534040](https://f.pz.al/pzal/2022/12/19/91e63632d4ff1.png)
+
+![image-20221219182048832](https://f.pz.al/pzal/2022/12/19/9f0ff9d1da101.png)
+
+# antd提示组件自定义icon
+
+下面的组件都可以使用icon
+
+![image-20221219185234871](https://f.pz.al/pzal/2022/12/19/c5a7ab0b7d824.png)
+
+### Modal.method()
+
+![image-20221219185750650](https://f.pz.al/pzal/2022/12/19/ceed7162e549f.png)
+
+包括：
+
+- `Modal.info`
+- `Modal.success`
+- `Modal.error`
+- `Modal.warning`
+- `Modal.confirm`
+
+```js
+  import { createVNode } from 'vue';
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+/** 清空附件
+   * @param {number} ID 资产ID，新增时为空
+   */
+  const confirmEmptyFile = (ID) => {
+    AModal.confirm({
+      title: '清空提醒',
+      content: '此操作将清空所有上传的文件。',
+      icon: createVNode(ExclamationCircleOutlined),
+      okText: '立即清空',
+      cancelText: '暂不清空',
+      onOk() {
+        deleteFile(1, {
+          assetId: ID,
+          fileKeyList: fileList.value.map(c => c.fileKey),
+        });
+      },
+      onCancel() {},
+    });
+  };
+```
+
+
+
+# loadsh库
+
+- pickBy的使用
+  ![image-20221219171337388](https://f.pz.al/pzal/2022/12/19/438ac2e369068.png)
+
+# 图片/文件的预览
+
+![image-20221219172622314](https://f.pz.al/pzal/2022/12/19/5b80dd3af0097.png)
+
+# slot插槽的使用
+
