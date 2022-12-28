@@ -788,3 +788,14 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 
 # slot插槽的使用
 
+
+
+
+
+# descriptions 描述列表
+
+> [Descriptions](https://2x.antdv.com/components/descriptions-cn)
+
+![image-20221227173124563](https://f.pz.al/pzal/2022/12/27/b9bec76a42214.png)
+
+ ![image-20221227173313648](https://f.pz.al/pzal/2022/12/27/05e5773e8175a.png)
