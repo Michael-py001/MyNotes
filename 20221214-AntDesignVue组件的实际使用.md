@@ -142,6 +142,22 @@ toggleInput(e, _key){
 
 ![image-20221216140226715](https://f.pz.al/pzal/2022/12/16/3f70962044cbf.png)
 
+## 表单的嵌套数据的校验
+
+> [参考嵌套结构的表单](https://2x.antdv.com/components/form-cn#components-form-demo-nested-form)
+
+数据是嵌套结构：
+
+![image-20221230163928506](https://s2.loli.net/2022/12/30/NUt1dbVGefBxOny.png)
+
+校验规则里也要嵌套的写：
+
+![image-20221230164011978](https://s2.loli.net/2022/12/30/Jb9CZU3XkNISj4V.png)
+
+标签的`name`属性也要写成数组的形式:
+
+![image-20221230164052664](https://s2.loli.net/2022/12/30/LetcRJ4SOnoEIpC.png)
+
 ## row col -- Grid栅格布局的使用
 
 > [Grid栅格](https://2x.antdv.com/components/grid-cn)
@@ -799,3 +815,72 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 ![image-20221227173124563](https://f.pz.al/pzal/2022/12/27/b9bec76a42214.png)
 
  ![image-20221227173313648](https://f.pz.al/pzal/2022/12/27/05e5773e8175a.png)
+
+# table表格组件
+
+## column数据的构建
+
+多个tab切换的场景，一个父页面需要包含多个table表格时，表头数据column应该如何构建：
+
+![image-20221228141149149](https://s2.loli.net/2022/12/28/Vca6CoJp2D1qry4.png)
+
+![image-20221228141512578](https://s2.loli.net/2022/12/28/6gkPlsZTA3Gi7bU.png)
+
+![image-20221228141600828](https://s2.loli.net/2022/12/28/WLpKHGoj9TeS3au.png)
+
+![image-20221228141655412](https://s2.loli.net/2022/12/28/fz8qJiDCShWoXen.png)
+
+![image-20221228141807910](https://s2.loli.net/2022/12/28/ETN58hzoFASkCMO.png)
+
+## column字段常用的属性
+
+> [Column属性](https://2x.antdv.com/components/table-cn)
+
+```js
+let column = [
+	{
+      title: '操作', //列头显示文字
+      dataIndex: 'opera',//列数据在数据项中对应的 key，支持 a.b.c 的嵌套写法
+      width: 200,//列宽度
+      align: 'center', //设置列内容的对齐方式
+      fixed: "right",//列是否固定，可选 true(等效于 left) 'left' 'right'
+      slots: { //使用 columns 时，可以通过该属性配置支持 slot 的属性，如 slots: { filterIcon: 'XXX'}
+        customRender: 'opera',
+      },
+    },
+]
+```
+
+还有其他的属性可以在官网查到；
+
+## slots属性的解疑答惑
+
+slots顾名思义的，是用在自定义插槽的时候，用于自定义显示。
+
+在antd v1 v2 v3版本中，有很大的变化：
+
+- v1: table组件的column中，含有slots和scopedSlots两个属性；
+  ![image-20221228151309542](https://s2.loli.net/2022/12/28/K5Hq6QV1dFcm8zu.png)
+
+- v2: 只剩下了slots属性了：
+
+  ![image-20221228151402966](https://s2.loli.net/2022/12/28/gQHdNmjIT5qLcs8.png)
+
+- v3: 直接废弃了column.slots属性，新增 `v-slot:bodyCell`、`v-slot:headerCell`作为代替。
+  ![image-20221228151533714](https://s2.loli.net/2022/12/28/Uljk2QvPxJzINnC.png)
+
+## v2版本：column.slots的使用演示
+
+![image-20221228152036340](https://s2.loli.net/2022/12/28/PrWadEmfebR87uG.png)
+
+![image-20221228152121685](https://s2.loli.net/2022/12/28/f1eAbhjoquQpLZW.png)
+
+## v3版本: v-slot:bodyCell的使用演示
+
+> [antd从v2升级到v3_叶子yeah的博客-CSDN博客_antd升级](https://blog.csdn.net/yeqiurong/article/details/124857027)
+>
+> [[ant-design-vue: Table\] column.slots报错_Cupid510的博客-CSDN博客](https://blog.csdn.net/weixin_44283432/article/details/126101249)
+>
+> [antd2 vue 升级到 antd3 时 table 报错处理_魂魄修罗的博客-CSDN博客_`column.slots` is deprecated. please use `v-slot:h](https://blog.csdn.net/LIN1475069547/article/details/124271064?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2-124271064-blog-126101249.pc_relevant_landingrelevant&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2-124271064-blog-126101249.pc_relevant_landingrelevant&utm_relevant_index=5)
+
+![image-20221228151934352](https://s2.loli.net/2022/12/28/s3geqzKOv49uXWD.png)
