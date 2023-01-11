@@ -884,3 +884,67 @@ slots顾名思义的，是用在自定义插槽的时候，用于自定义显示
 > [antd2 vue 升级到 antd3 时 table 报错处理_魂魄修罗的博客-CSDN博客_`column.slots` is deprecated. please use `v-slot:h](https://blog.csdn.net/LIN1475069547/article/details/124271064?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2-124271064-blog-126101249.pc_relevant_landingrelevant&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2-124271064-blog-126101249.pc_relevant_landingrelevant&utm_relevant_index=5)
 
 ![image-20221228151934352](https://s2.loli.net/2022/12/28/s3geqzKOv49uXWD.png)
+
+
+
+# input-number组件
+
+
+
+```html
+<a-col :span="11">
+    <a-row class="project-apl-opt-row" type="flex" justify="start" align="top">
+        <a-col :span="16">
+            <a-form-item :label="keysProps.minBidRange.name" name="minBidRange">
+                <a-input-number
+                                v-model:value="formData.minBidRange"
+                                :formatter="value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                                :parser="value => value.replace(/\$\s?|(,*)/g, '')"
+                                placeholder="请输入"
+                                v-bind="keysProps.minBidRange"
+                                />
+            </a-form-item>
+        </a-col>
+        <a-col class="project-apl-opt-row_text" :span="8">
+            <span>元（需是100的整数倍）</span>
+        </a-col>
+    </a-row>
+</a-col>
+```
+
+# Space 间距
+
+设置组件之间的间距。
+
+## 何时使用
+
+避免组件紧贴在一起，拉开统一的空间。
+
+- 适合行内元素的水平间距。
+- 可以设置各种水平对齐方式。
+
+![image-20230109163223637](https://s2.loli.net/2023/01/09/RDVeozFTIdSBwx7.png)
+
+![image-20230109163252664](https://s2.loli.net/2023/01/09/Da3zX21LGKHwCPd.png)
+
+![image-20230109163322124](https://s2.loli.net/2023/01/09/aREZn1NctgrTyXS.png)
+
+## API[#](https://2x.antdv.com/components/space-cn#API)
+
+| 参数      | 说明     | 类型                                    | 默认值       | 版本  |
+| :-------- | :------- | :-------------------------------------- | :----------- | :---- |
+| align     | 对齐方式 | `start` | `end` |`center` |`baseline`   | -            | 1.6.5 |
+| direction | 间距方向 | `vertical` | `horizontal`               | `horizontal` | 1.6.5 |
+| size      | 间距大小 | `small` | `middle` | `large` | `number` | `small`      | 1.6.5 |
+
+# Popconfirm 气泡确认框
+
+点击元素，弹出气泡式的确认框。
+
+## 何时使用
+
+目标元素的操作需要用户进一步的确认时，在目标元素附近弹出浮层提示，询问用户。 和 'confirm' 弹出的全屏居中模态对话框相比，交互形式更轻量。
+
+![image-20230109164153564](https://s2.loli.net/2023/01/09/ijrE3DQaPF2wmbO.png)
+
+![image-20230109164202720](https://s2.loli.net/2023/01/09/isAuXHTM4kSKd63.png)

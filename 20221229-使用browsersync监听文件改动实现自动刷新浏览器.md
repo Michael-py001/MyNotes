@@ -1,4 +1,4 @@
-# 20221229-【未写】browsersync监听文件刷新浏览器的使用
+# 20221229-使用browsersync监听文件改动实现自动刷新浏览器
 
 > [Browsersync 命令行用法 (bootcss.com)](https://browsersync.bootcss.com/docs/command-line)
 
