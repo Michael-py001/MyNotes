@@ -92,6 +92,30 @@ export default{
   };
 ```
 
+## 自定义校验规则
+
+```js
+const validateCode = async (rule, value) => {
+    if (value === '') {
+        return Promise.reject('图形验证码不能为空');
+    } else if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
+        return Promise.reject('图形验证码错误或已失效');
+    } else {
+        return Promise.resolve();
+    }
+};
+
+const loginFormRules = {
+    //校验手机号
+    mobile: [
+        { required: true, message: '手机号不能为空', trigger: 'blur' },
+        { pattern: /^1[3|4|5|6|7|8|9]\d{9}$/, message: '手机号格式有误', trigger: 'blur' },
+    ],
+    code: [{ required: true, validator: validateCode, trigger: 'blur' }],
+    smsCode: [{ required: true, message: '短信验证码不能为空', trigger: 'blur' }],
+};
+```
+
 规则对象里的每个key值，对应`form-item`中的`name`名字：
 
 ```html
@@ -232,6 +256,29 @@ setup() {
 ```
 
 
+
+## wrapperCol和labelCol属性的使用
+
+> [Ant Design Vue (antdv.com)](https://2x.antdv.com/components/form-cn#API)
+
+| 参数       | 说明                                                         | 类型                                                   |      |      |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------------ | ---- | ---- |
+| labelCol   | label 标签布局，同 `<Col>` 组件，设置 `span` `offset` 值，如 `{span: 3, offset: 12}` 或 `sm: {span: 3, offset: 12}` | [object](https://2x.antdv.com/components/grid-cn/#Col) |      |      |
+| wrapperCol | 需要为输入控件设置布局样式时，使用该属性，用法同 labelCol    | [object](https://2x.antdv.com/components/grid-cn/#Col) |      |      |
+
+### labelCol：控制label的宽度
+
+`:labelCol="{ style: { minWidth: '100px' } }"`
+
+![image-20230113180348482](C:\Users\WuShiLi\AppData\Roaming\Typora\typora-user-images\image-20230113180348482.png)
+
+![image-20230113180324658](https://s2.loli.net/2023/01/13/GE24Qim1n6gyDzY.png)
+
+### wrapperCol：控制控件的宽度
+
+`:wrapperCol="{ span: 17 }"`
+
+![image-20230113180402798](C:\Users\WuShiLi\AppData\Roaming\Typora\typora-user-images\image-20230113180402798.png)
 
 # cascader 级联选择
 
@@ -815,6 +862,10 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 ![image-20221227173124563](https://f.pz.al/pzal/2022/12/27/b9bec76a42214.png)
 
  ![image-20221227173313648](https://f.pz.al/pzal/2022/12/27/05e5773e8175a.png)
+
+![image-20230112094829330](https://s2.loli.net/2023/01/12/J7GjvMngHzfoqit.png)
+
+![image-20230112095053611](https://s2.loli.net/2023/01/12/KIZ9gEoezryuADF.png)
 
 # table表格组件
 
