@@ -155,16 +155,28 @@ toggleInput(e, _key){
     }
     // 移除验证
     if(this.$refs.formRef){
-        this.$refs.formRef.clearValidate(_key);
+        this.$refs.formRef.clearValidate(_key); //$refs是获取a-form上设置的ref
     }
     // 验证规则切换是否必填
     this.rules[_key][0].required = _check;
 },
 ```
 
+![image-20230115145357668](https://s2.loli.net/2023/01/15/BqfiOAbol726WF9.png)
+
 ![image-20221216140203857](https://f.pz.al/pzal/2022/12/16/d761149189190.png)
 
 ![image-20221216140226715](https://f.pz.al/pzal/2022/12/16/3f70962044cbf.png)
+
+## 单独检验其中的某一项
+
+```js
+loginFormRef.value //loginFormRef表单设置的ref获取的实例
+            .validateFields(['mobile', 'code']) //字段名称
+            .then(() => {})
+```
+
+
 
 ## 表单的嵌套数据的校验
 
@@ -817,6 +829,7 @@ dispatch派发的action:
 ```js
   import { createVNode } from 'vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { message as AMessage, Modal as AModal } from 'ant-design-vue';
 /** 清空附件
    * @param {number} ID 资产ID，新增时为空
    */
@@ -831,6 +844,35 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
         deleteFile(1, {
           assetId: ID,
           fileKeyList: fileList.value.map(c => c.fileKey),
+        });
+      },
+      onCancel() {},
+    });
+  };
+```
+
+# message / Modal.method()的使用
+
+```js
+import { message as AMessage, Modal as AModal } from 'ant-design-vue';
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import {createVNode } from 'vue';
+
+AMessage.success(res.message);
+AMessage.error(res.message);
+
+/** 删除 */
+  const handleDelete = (item) => {
+    AModal.confirm({
+      title: '删除警告',
+      content: '注意：删除后将移除该角色，如果成员没有其他角色，则将无法正常登录使用。',
+      icon: createVNode(ExclamationCircleOutlined),
+      okText: '立即删除',
+      cancelText: '暂不删除',
+      onOk(){
+        return new Promise((resolve, reject) => {
+          const res = deleteRole(item, resolve, reject);
+          return res;
         });
       },
       onCancel() {},

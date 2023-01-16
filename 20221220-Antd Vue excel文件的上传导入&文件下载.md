@@ -90,7 +90,7 @@ const fileList = ref([])
 
 ![image-20230109190652172](https://s2.loli.net/2023/01/09/3zsCo614vUZ9gpj.png)
 
-## 不适用action，手动上传
+## 不使用action，手动上传
 
 手动上传文件，传给接口的数据是用`new FormData()`创建的。可以在里面添加后台约定的参数：
 
