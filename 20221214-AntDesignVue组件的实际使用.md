@@ -827,7 +827,7 @@ dispatch派发的action:
 - `Modal.confirm`
 
 ```js
-  import { createVNode } from 'vue';
+import { createVNode } from 'vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { message as AMessage, Modal as AModal } from 'ant-design-vue';
 /** 清空附件
