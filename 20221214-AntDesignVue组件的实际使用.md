@@ -282,7 +282,7 @@ setup() {
 
 `:labelCol="{ style: { minWidth: '100px' } }"`
 
-![image-20230113180348482](C:\Users\WuShiLi\AppData\Roaming\Typora\typora-user-images\image-20230113180348482.png)
+![image-20230113180348482](https://s2.loli.net/2023/01/18/GEzwrAFLPTvuJlj.png)
 
 ![image-20230113180324658](https://s2.loli.net/2023/01/13/GE24Qim1n6gyDzY.png)
 
@@ -290,7 +290,7 @@ setup() {
 
 `:wrapperCol="{ span: 17 }"`
 
-![image-20230113180402798](C:\Users\WuShiLi\AppData\Roaming\Typora\typora-user-images\image-20230113180402798.png)
+![image-20230113180402798](https://s2.loli.net/2023/01/18/OYM1x6ctBRpjHvE.png)
 
 # cascader 级联选择
 
