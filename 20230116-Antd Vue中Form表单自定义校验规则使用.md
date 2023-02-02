@@ -34,6 +34,8 @@ rules:[
 - 校验规则里面设置transform，把vallue转成Number类型
 - 设置input的v-model:value.number，vue自动转换float浮点值
 
+官方文档：[yiminghe/async-validator: validate form asynchronous (github.com)](https://github.com/yiminghe/async-validator)
+
 ```js
 rules:[
         { required: true, message: '请输入短信验证码' },
@@ -43,6 +45,16 @@ rules:[
            } }
       ],
 ```
+
+### 关于不同数据类型长度的判断
+
+> #### Length
+>
+> To validate an exact length of a field specify the `len` property. For `string` and `array` types comparison is performed on the `length` property, for the `number` type this property indicates an exact match for the `number`, ie, it may only be strictly equal to `len`.
+
+意思是`string` 和 `array`使用`length`判断长度，数字类型只能用`len`属性。
+
+**注意：**不能把`type: 'number'`和`len: 4`写在同一条规则里面，否则会出现Bug
 
 ![image-20230116104155817](https://s2.loli.net/2023/01/16/amZTlwUSq6fVKPL.png)
 

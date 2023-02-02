@@ -176,6 +176,50 @@ loginFormRef.value //loginFormRef表单设置的ref获取的实例
             .then(() => {})
 ```
 
+## 动态表单required校验，星号动态显示
+
+- 如果在rules里面写required，动态设置true/false，则label旁边的星号不会动态显示
+
+- 如果在label-item里写了required属性，则会多出一行提示 xxx is required，跟自己定义的rules的提示不一样，就不符合要求
+
+  ![image-20230130113044480](https://s2.loli.net/2023/01/30/Tot3yFzhWHlIGdE.png)
+
+  ![image-20230130112837254](https://s2.loli.net/2023/01/30/pvKqcUSfrG97PlC.png)
+
+  最终解决方法：使用自定义class控制星号的显示，使用`clearValidate`移除表单项的校验结果(不会影响下一次校验)，再手动设置rules对应字段的required为 true / false 。
+
+![1](https://s2.loli.net/2023/01/30/oNC6FcaYB3UOs7e.gif)
+
+ -  动态设置class样式
+
+    ```less
+    .no-required{
+        :deep(label.ant-form-item-required::before){
+          content: '';
+        }
+      }
+    ```
+
+![image-20230130140432871](https://s2.loli.net/2023/01/30/r9agqpRktoPFGCf.png)
+
+- 默认设置required
+
+![image-20230130140754549](https://s2.loli.net/2023/01/30/LNBRUOg38fwkAdy.png)
+
+```js
+ // 交易中心切换为否时，置空两个字段
+    watch(
+      () => organizationForm.isTradeCenter,
+      nVal => {
+        // isTradeCenter 1是 0否
+        if (nVal != '1') {
+          organizationFormRef.value.clearValidate(['complaintCall']);
+        }
+        organizationFormRules['complaintCall'][0].required = nVal === '1' ? true : false;
+      },
+    );
+```
+
 
 
 ## 表单的嵌套数据的校验

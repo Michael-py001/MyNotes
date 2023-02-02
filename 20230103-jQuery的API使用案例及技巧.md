@@ -166,3 +166,16 @@ var timeDown = $.utilPreTimeDown('#' + item.downTimeId, handleSendServer);
 ```
 
 ![image-20230105101923938](https://s2.loli.net/2023/01/05/WtMzSaycuC9wrJU.png)
+
+## .unbind()
+
+```js
+$slider.unbind('mouseenter').unbind('mouseleave');// 取消 slider的 hover事件，避免自动滑动
+```
+
+## .off()
+
+```js
+$('.trade-product-page-contain_left_opera').off('click', handleSliderPlay);
+```
+
