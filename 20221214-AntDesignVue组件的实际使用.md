@@ -955,6 +955,30 @@ AMessage.error(res.message);
 
 # table表格组件
 
+> [Ant Design Vue (antdv.com)](https://2x.antdv.com/components/table-cn#API)
+
+## 设置row-key
+
+> 表格行 key 的取值，可以是字符串或一个函数
+
+```html
+ <a-table 
+      :dataSource="dataSource" 
+      :columns="columns" 
+      :pagination="pagination"
+      :loading="loading"
+      bordered
+      :row-key="
+        (record, index) => {
+          return record[tableRowKey] ? record[tableRowKey] : index;
+        }
+      "
+    >
+</a-table>
+```
+
+
+
 ## column数据的构建
 
 多个tab切换的场景，一个父页面需要包含多个table表格时，表头数据column应该如何构建：
