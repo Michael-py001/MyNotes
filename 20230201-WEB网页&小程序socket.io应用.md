@@ -1,4 +1,4 @@
-# 20230201-小程序socket应用
+# 20230201-WEB网页 & 小程序socket.io应用
 
 ## weapp.socket.io 
 
@@ -139,3 +139,22 @@ const socket = manager.socket("/my-namespace", {
 });
 ```
 
+## PC网页中的使用
+
+> [balderdashy/sails.io.js: Browser SDK for communicating w/ Sails via sockets (github.com)](https://github.com/balderdashy/sails.io.js)
+
+![image-20230214135240206](https://s2.loli.net/2023/02/14/KUbRrt1ATf5mPXI.png)
+
+![image-20230214104437187](https://s2.loli.net/2023/02/14/KXeB4taubGpf53A.png)
+
+![image-20230214104520478](https://s2.loli.net/2023/02/14/jtePi9aqANsZ3Ey.png)
+
+![image-20230214105003045](https://s2.loli.net/2023/02/14/9lpzRGUWBbw7OCM.png)
+
+## 关于为啥可以直接用io.connect而不是io.sails.connect()
+
+> [Socket client (sailsjs.com)](https://sailsjs.com/documentation/reference/web-sockets/socket-client)
+
+## CORS相关
+
+[CORS (sailsjs.com)](https://sailsjs.com/documentation/concepts/security/cors)
