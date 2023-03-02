@@ -1,0 +1,379 @@
+# 20230221-TypeScript基础入门
+
+## 安装
+
+
+
+# TS与JS中的类型
+
+JavaScript 中已经有一些基本类型可用：`boolean`、 `bigint`、 `null`、`number`、 `string`、 `symbol `和 `undefined`，引用数据类型：`object`，一共8种， 它们都可以在接口中使用。TypeScript 将此列表扩展为更多的内容，例如:
+
+- `any` （允许任何类型）
+- [`unknown`](https://www.typescriptlang.org/play#example/unknown-and-never) （确保使用此类型的人声明类型是什么）
+-  [`never`](https://www.typescriptlang.org/play#example/unknown-and-never) （这种类型不可能发生）
+-  `void` （返回 `undefined` 或没有返回值的函数）。
+
+所以TS中的类型一共有 8+4 = 12种。
+
+构建类型有两种语法： [接口和类型](https://www.typescriptlang.org/play/?e=83#example/types-vs-interfaces)。 你应该更喜欢 `interface`。当需要特定功能时使用 `type` 。
+
+# 定义类型
+
+要创建具有推断类型的对象，该类型包括 `name: string` 和 `id: number`，你可以这么写：
+
+```typescript
+const user = {
+  name: "Hayes",
+  id: 0,
+};
+```
+
+![image-20230222154813566](https://s2.loli.net/2023/02/22/5zSvFLiaynOYlkM.png)
+
+## 用interface定义类型 
+
+### 定义接口声明
+
+你可以使用 `interface` 关键字声明显式地描述此对象的*内部数据的类型*
+
+```typescript
+interface User {
+  name: string;
+  id: number;
+}
+```
+
+### 接口声明与类一起使用
+
+然后你可以声明一个符合此接口（`interface`）的 JavaScript 对象，在变量声明后使用像 `: TypeName` 这样的语法：
+
+```typescript
+interface User {
+  name: string;
+  id: number;
+}
+class UserAccount {
+  name:string;
+  id:number;
+
+  constructor(name:string, id:number) {
+    this.name = name;
+    this.id = id
+  }
+}
+
+const userOne: User = new UserAccount('Lili',1)
+```
+
+### 定义函数返回值类型
+
+```typescript
+interface User {
+  name:string;
+  id:number;
+}
+function getUser(): User {
+  return {
+    name: 'admin',
+    id:2
+  }
+}
+```
+
+### 定义函数参数类型
+
+```typescript
+interface User {
+  name:string;
+  id:number;
+}
+function deleteUser(user: User) {
+  // ...
+}
+deleteUser({
+  name: 'admin',
+  id: 0
+})
+```
+
+## 用type定义类型
+
+```typescript
+type BirdType = {
+  wings: 2;
+};
+
+const bird1: BirdType = { wings: 2 };
+```
+
+# type 和interface 定义类型对比
+
+1. interface和type定义的类型可以相互使用，没有差别
+
+2. 他们都支持拓展其他类型或接口，Type通过`&`符号并上其他类型，interface则通过`extends`关键字继承其他接口
+3. 推荐使用interface,因为可以提供更好的错误信息
+
+```typescript
+// There are two main tools to declare the shape of an
+// object: interfaces and type aliases.
+//
+// They are very similar, and for the most common cases
+// act the same.
+type BirdType = {
+  wings: 2;
+};
+
+interface BirdInterface {
+  wings: 2;
+}
+
+const bird1: BirdType = { wings: 2 };
+const bird2: BirdInterface = { wings: 2 };
+
+// Because TypeScript is a structural(结构性) type system,
+// it's possible to intermix(相互混合) their use too.
+// 1、interface和type定义的类型可以相互使用，没有差别
+const bird3: BirdInterface = bird1;
+
+// They both support extending other interfaces and types.
+// Type aliases do this via(通过) intersection(& 相交符号) types, while
+// interfaces have a keyword(extends).
+// 2. 他们都支持拓展其他类型或接口，Type通过`&`符号并上其他类型，interface则通过`extends`关键字继承其他接口
+type Owl = { nocturnal: true } & BirdType;
+type Robin = { nocturnal: false } & BirdInterface;
+
+interface Peacock extends BirdType {
+  colourful: true;
+  flies: false;
+}
+interface Chicken extends BirdInterface {
+  colourful: false;
+  flies: false;
+}
+
+let owl: Owl = { wings: 2, nocturnal: true };
+let chicken: Chicken = { wings: 2, colourful: false, flies: false };
+
+// That said, we recommend you use interfaces over type
+// aliases. Specifically, because you will get better error
+// messages. If you hover over the following errors, you can
+// see how TypeScript can provide terser(精炼的) and more focused(更专注)
+// messages when working with interfaces like Chicken.
+//3. 推荐使用interface,因为可以提供更好的错误信息
+owl = chicken;
+chicken = owl;
+```
+
+assignable  可赋值的
+
+![image-20230222185003400](https://s2.loli.net/2023/02/22/XCTxEZUGsRwvlto.png)
+
+![image-20230222185016946](https://s2.loli.net/2023/02/22/C5VM4xAHpyiXe6K.png)
+
+# 组合类型
+
+> [TypeScript: 组合类型](https://www.typescriptlang.org/zh/docs/handbook/typescript-in-5-minutes.html#组合类型)
+
+使用 TypeScript，可以通过组合简单类型来创建复杂类型。有两种流行的方法可以做到这一点：**联合和泛型**。
+
+## 联合类型
+
+使用联合，可以声明类型可以是许多类型中的一种。例如，可以将 `boolean` 类型描述为 `true` 或 `false` ：
+
+```ts
+type MyBool = true | false;
+```
+
+注意：_如果将鼠标悬停在上面的 `MyBool` 上，您将看到它被归类为 `boolean`。这是结构化类型系统的一个属性。下面有更加详细的信息。
+
+![image-20230223115905248](https://s2.loli.net/2023/02/23/GVhcmNdUkxCEfQ4.png)
+
+联合类型的一个流行用法是描述 `string` 或者 `number` 的[字面量](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#literal-types)的合法值。
+
+```typescript
+type WindowStates = "open" | "closed" | "minimized";
+type LockStates = "locked" | "unlocked";
+type PositiveOddNumbersUnderTen = 1 | 3 | 5 | 7 | 9;
+```
+
+联合也提供了一种处理不同类型的方法。例如，可能有一个函数处理 `array` 或者 `string`：
+
+```typescript
+function getLength(obj: string | string[]) {
+  return obj.length;
+}
+```
+
+你可以使函数根据传递的是字符串还是数组返回不同的值：
+
+```typescript
+function wrapInArray(obj: string | string[]) {
+  if (typeof obj === "string") {
+    return [obj];
+            
+(parameter) obj: string
+  }
+  return obj;
+}
+```
+
+### 案例
+
+TS中的联合类型（Union Types）可以用于指定一个变量可以是多种类型中的任何一种，即多个类型中的一个。
+
+语法上，使用 "|" 符号将多个类型连接起来，例如：
+
+```typescript
+let myVar: number | boolean;
+myVar = 10;  // 合法
+myVar = true;  // 合法
+myVar = "hello";  // 报错，不是指定的类型之一
+```
+
+上面的例子中，变量 myVar 的类型被定义为 "number" 或 "boolean" 类型中的一种，可以存储任意一个类型的值。如果尝试存储其他类型，则会出现类型错误。
+
+联合类型在开发中非常有用，可以在需要支持多种类型的场景下使用，避免使用 any 类型或其他不符合规范的做法。同时，在使用联合类型的时候，还可以使用类型保护技术，例如 typeof 或 instanceof 等，以提高代码的健壮性和可读性。
+
+## 泛型
+
+在TypeScript 中，**泛型（Generics）**是一种可重用代码的技巧，它可以创建能够用于不同类型的代码组件。**所谓泛型，就是指在定义函数、接口或类的时候，不预先指定具体类型，而是在使用的时候再指定类型参数的一种特性。**
+
+通过泛型，可以使函数、接口或类的形参类型与返回值的类型变得灵活，并且可以由开发者在使用时进行指定；同时可以很好地防止类型错误。
+
+下面是一个使用泛型的简单例子：
+
+```typescript
+function Identity<T>(arg: T): T {
+  return arg;
+}
+
+let output1 = Identity<string>("Hello World!");
+let output2 = Identity<number>(1000);
+
+console.log(output1);
+console.log(output2);
+```
+
+在这个例子中，我们定义了一个Identity的泛型函数，使用T作为**类型变量**。我们在函数的参数里使用了这个T类型变量，并且返回了一个T类型变量。 调用这个泛型函数时，需要在函数名后面使用尖括号括起来指定泛型类型。
+
+这个例子中的泛型函数可以处理任何类型的参数并返回该类型，因此我们传入什么类型的参数，就会返回相同的类型的结果。
+
+通过泛型，我们可以编写灵活、可重用的代码，提高代码的健壮性和可读性。
+
+### 案例
+
+泛型为类型提供变量。一个常见的例子是数组。没有泛型的数组可以包含任何内容。带有泛型的数组可以描述数组包含的值。
+
+```typescript
+type StringArray = Array<string>;
+type NumberArray = Array<number>;
+type ObjectWithNameArray = Array<{ name: string }>;
+```
+
+你可以声明自己使用泛型的类型：
+
+```typescript
+interface Backpack<Type> {
+  add: (obj: Type) => void;
+  get: () => Type;
+}
+ 
+// 这一行是一个简写，可以告诉 TypeScript 有一个常量，叫做`backpack`，并且不用担心它是从哪
+// 里来的。
+declare const backpack: Backpack<string>;
+ 
+// 对象是一个字符串，因为我们在上面声明了它作为 Backpack 的变量部分。
+const object = backpack.get();
+ 
+// 因为 backpack 变量是一个字符串，不能将数字传递给 add 函数。
+backpack.add(23);
+```
+
+![image-20230302184859995](https://s2.loli.net/2023/03/02/pgJWKzaUxeq2oLN.png)
+
+
+
+# 断言
+
+从 TypeScript 1.6 版本开始，TypeScript 提供了类型断言（Type Assertion）机制，可以用来手动指定变量的类型，以适应开发者的特定需求。
+
+类型断言有两种语法形式：
+
+1. 尖括号语法
+
+   ```typescript
+   let myVar: any = "Hello, TypeScript!";
+   let myStr: string = (<string>myVar);
+   console.log(myStr.length);  // 合法，输出 17
+   ```
+
+2. as 语法
+
+   ```typescript
+   let myVar: any = "Hello, TypeScript!";
+   let myStr: string = (myVar as string);
+   console.log(myStr.length);  // 合法，输出 17
+   ```
+
+## 强行断言
+
+强制类型转换，也叫作“类型断言”（Type Assertion），它属于一种人为干预类型检查的做法。开发者在使用类型断言时，必须手动指定变量的类型，以适应特定的开发需求。
+
+有时候，在进行类型检查时，TypeScript 为避免类型错误，会在变量赋值时给出警告。但是，如果开发者认为这种警告可以被忽略，因为其知道变量的确切类型，那么就可以使用类型强制转换来“打消”TypeScript的警告。
+
+强制类型转换的符号有两种语法形式：
+
+1. 尖括号语法
+
+   ```typescript
+   let obj: any = 'hello';
+   let strLength: number = (<string>obj).length;
+   ```
+
+2. as关键字语法
+
+   ```typescript
+   let obj: any = 'hello';
+   let strLength: number = (obj as string).length;
+   ```
+
+需要注意的是，对于类型强制转换的使用要保证变量的类型确实是可以断言的，否则就可能引发程序错误。
+
+并且， TypeSript使用类型断言来改变数据类型的本质并没有发生变化，变量的类型仍然是该变量在编译期按照TypeScript的类型推断规则所推断出，而不是由TypeScript 强制指定的类型。因此，它并不能真正的改变变量的类型，只是为了规避TypeScript的类型检查而已。
+
+# 数组类型的声明
+
+比如一下这段代码：
+
+```ts
+function getLength(obj: string | string[]) {
+  return obj.length;
+}
+```
+
+其中`obj: string | string[]`这段代码的意思是：
+
+函数 `getLength(obj: string | string[])` 的参数类型定义中，`string | string[]` 表示 obj 可以是一个字符串或者字符串数组。
+
+也就是说，这个函数可以接受两种类型的参数：字符串或者字符串数组。
+
+### 什么是字符串数组？
+
+字符串数组是由多个字符串组成的数组。可以使用 TypeScript 中的数组类型声明来表示字符串数组。比如，下面是一个示例：
+
+```ts
+const myArray: string[] = ['apple', 'banana', 'orange'];
+```
+
+在上面的示例中，`myArray` 是一个类型为 `string[]` 的数组，它包含了三个字符串元素 `'apple'`、`'banana'` 和 `'orange'`。
+
+通过这种方式，我们可以将多个字符串存储在一个数组中，以便于组织和处理。在 TypeScript 中，数组类型是一种非常重要的类型，我们经常会用到它来存储一组相关的数据。
+
+### TS中所有类型的数组有哪些？
+
+1. **数字数组**：由多个数字组成的数组，可以使用 `number[]` 类型声明表示，例如 `[1, 2, 3]`。
+2. **布尔数组**：由多个布尔值组成的数组，可以使用 `boolean[]` 类型声明表示，例如 `[true, false, true]`。
+3. **对象数组**：由多个对象组成的数组，可以使用对象类型声明的数组表示，例如 `{name: string, age: number}[]` 表示由多个拥有 `name` 和 `age` 属性的对象组成的数组。
+4. **任意类型数组**：由多种类型组成的数组，可以使用 `any[]` 类型声明表示，例如 `['apple', 2, true]`，其中包含了字符串、数字和布尔类型。
+
+除此之外，TypeScript 还支持**元组类型（tuple）**，它可以限定数组中每个元素的类型和数量。元组类型使用 `[type1, type2, ...]` 这样的语法来定义。例如，`[string, number]` 表示只包含两个元素，第一个元素为字符串类型，第二个元素为数字类型的数组。
