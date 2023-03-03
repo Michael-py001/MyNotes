@@ -7,6 +7,10 @@
 > [【JavaScript】论一个低配版Web实时通信库是如何实现的之二（ EventSource篇) - 外婆的 - 博客园 (cnblogs.com)](https://www.cnblogs.com/penghuwan/p/11391705.html)
 >
 > [【Node.js】论一个低配版Web实时通信库是如何实现的1（ WebSocket篇) - 外婆的 - 博客园 (cnblogs.com)](https://www.cnblogs.com/penghuwan/p/11381182.html#_label1)
+>
+> [聊聊 EventStream 服务器端推送 – Light Cube (github.red)](https://github.red/talking-about-eventstream/)
+>
+> [Server-Sent Events 教程 - 阮一峰的网络日志 (ruanyifeng.com)](http://www.ruanyifeng.com/blog/2017/05/server-sent_events.html)
 
 EventSource是一个HTML5新增的JavaScript API，它允许Web浏览器从服务器接收推送事件。使用EventSource，我们可以通过HTTP连接实时获取服务器发出的事件，而无需像传统的HTTP请求那样在每次请求之间进行轮询。
 

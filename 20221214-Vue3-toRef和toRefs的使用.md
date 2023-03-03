@@ -25,8 +25,6 @@ console.log(fooRef.value) // 3
 
 请注意，这不同于：
 
-js
-
 ```js
 const fooRef = ref(state.foo)
 ```
@@ -34,8 +32,6 @@ const fooRef = ref(state.foo)
 上面这个 ref **不会**和 `state.foo` 保持同步，因为这个 `ref()` 接收到的是一个纯数值。
 
 `toRef()` 这个函数在你想把一个 prop 的 ref 传递给一个组合式函数时会很有用：
-
-vue
 
 ```html
 <script setup>
@@ -48,6 +44,8 @@ const props = defineProps(/* ... */)
 useSomeFeature(toRef(props, 'foo'))
 </script>
 ```
+
+当 `toRef` 与组件 props 结合使用时，关于禁止对 props 做出更改的限制依然有效。尝试将新的值传递给 ref 等效于尝试直接更改 props，这是不允许的。在这种场景下，你可能可以考虑使用带有 `get` 和 `set` 的 [`computed`](https://cn.vuejs.org/api/reactivity-core.html#computed) 替代。
 
 ## toRefs()
 
@@ -83,8 +81,6 @@ useSomeFeature(toRef(props, 'foo'))
 
   当从组合式函数中返回响应式对象时，`toRefs` 相当有用。使用它，消费者组件可以解构/展开返回的对象而不会失去响应性：
 
-  js
-
   ```js
   function useFeatureX() {
     const state = reactive({
@@ -101,10 +97,10 @@ useSomeFeature(toRef(props, 'foo'))
   // 可以解构而不会失去响应性
   const { foo, bar } = useFeatureX()
   ```
-
+  
   `toRefs` 在调用时只会为源对象上可以枚举的属性创建 ref。如果要为可能还不存在的属性创建 ref，请改用 [`toRef`](https://cn.vuejs.org/api/reactivity-utilities.html#toref)。
 
-## 实际使用案例
+## toRefs实际使用案例
 
 1. 通过reactive创建响应式对象
 2. `toRefs(data)`转换ref
@@ -154,6 +150,48 @@ setup() {
 ![image-20221214173720679](https://f.pz.al/pzal/2022/12/14/62dec812eb88a.png)
 
 ![image-20221214173736218](https://f.pz.al/pzal/2022/12/14/aab4f8ecec710.png)
+
+
+
+## toRef和toRefs的使用案例
+
+`organizationForm`是一个用`reactive`创建的响应式对象。现在需要把这个对象里的`organizationName`传到其他地方使用，在页面上显示。
+
+```js
+ const organizationForm = reactive({
+     ...,
+     organizationName: ''
+ })
+```
+
+```js
+let {xxx} = useFormModal({
+  organizationName:organizationForm.organizationName
+})
+```
+
+使用组合式函数引入后，再传入到其他函数时，是按值传递的，传入的是当时的值，后面`organizationName`内容改变了，在`useFormModal`里面的值也是不会改变的。此时需要把`organizationName`转为响应式值。
+
+### 使用toRef把某个属性值转为响应式
+
+```js
+let organizationName = toRef(organizationForm,'organizationName')
+
+let {xxx} = useFormModal({
+  organizationName
+})
+```
+
+### 使用toRefs方案
+
+把`organizationForm`整个转换，再解构出里面的`organizationName`，此时也是响应式的。
+
+```js
+let {organizationName} = toRefs(organizationForm)
+let {xxx} = useFormModal({
+  organizationName
+})
+```
 
 ## unref()
 
