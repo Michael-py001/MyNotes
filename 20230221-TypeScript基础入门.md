@@ -254,15 +254,15 @@ console.log(output1);
 console.log(output2);
 ```
 
-在这个例子中，我们定义了一个Identity的泛型函数，使用T作为**类型变量**。我们在函数的参数里使用了这个T类型变量，并且返回了一个T类型变量。 调用这个泛型函数时，需要在函数名后面使用尖括号括起来指定泛型类型。
+在这个例子中，我们定义了一个Identity的泛型函数，使用T作为**类型变量**。我们在函数的参数里使用了这个**T类型变量**，并且**返回了一个T类型变量**。 调用这个泛型函数时，需要在函数名后面使用尖括号括起来指定泛型类型。
 
-这个例子中的泛型函数可以处理任何类型的参数并返回该类型，因此我们传入什么类型的参数，就会返回相同的类型的结果。
+这个例子中的泛型函数可以处理任何类型的参数并返回该类型，因此我们**传入什么类型的参数，就会返回相同的类型的结果。**
 
 通过泛型，我们可以编写灵活、可重用的代码，提高代码的健壮性和可读性。
 
 ### 案例
 
-泛型为类型提供变量。一个常见的例子是数组。没有泛型的数组可以包含任何内容。带有泛型的数组可以描述数组包含的值。
+**泛型为类型提供变量**。一个常见的例子是数组。没有泛型的数组可以包含任何内容。带有泛型的数组可以描述数组包含的值。
 
 ```typescript
 type StringArray = Array<string>;
@@ -291,7 +291,60 @@ backpack.add(23);
 
 ![image-20230302184859995](https://s2.loli.net/2023/03/02/pgJWKzaUxeq2oLN.png)
 
+# 结构化的类型系统
 
+TypeScript 的一个核心原则是类型检查基于对象的属性和行为（type checking focuses on the *shape* that values have）。这有时被叫做“鸭子类型”或“结构类型”（structural typing）。
+
+在结构化的类型系统当中，如果两个对象具有相同的结构，则认为它们是相同类型的。
+
+```typescript
+interface Point {
+  x: number;
+  y: number;
+}
+ 
+function logPoint(p: Point) {
+  console.log(`${p.x}, ${p.y}`);
+}
+ 
+// 打印 "12, 26"
+const point = { x: 12, y: 26 };
+logPoint(point);
+```
+
+`point` 变量从未声明为 `Point` 类型。 但是，在类型检查中，TypeScript 将 `point` 的结构与 `Point`的结构进行比较。它们的结构相同，所以代码通过了。
+
+- **结构匹配只需要匹配对象字段的子集。**
+
+![image-20230308093028250](https://s2.loli.net/2023/03/08/uQpG3PgcDRBl1qn.png)
+
+- **类和对象确定结构的方式没有区别：**
+
+  ```typescript
+  interface Point {
+    x: number;
+    y: number;
+  }
+   
+  function logPoint(p: Point) {
+    console.log(`${p.x}, ${p.y}`);
+  }
+  // ---分割线---
+  class VirtualPoint {
+    x: number;
+    y: number;
+   
+    constructor(x: number, y: number) {
+      this.x = x;
+      this.y = y;
+    }
+  }
+   
+  const newVPoint = new VirtualPoint(13, 56);
+  logPoint(newVPoint); // 打印 "13, 56"
+  ```
+
+  如果对象或类具有所有必需的属性，则 TypeScript 将表示是它们匹配的，而不关注其实现细节。
 
 # 断言
 
@@ -377,3 +430,57 @@ const myArray: string[] = ['apple', 'banana', 'orange'];
 4. **任意类型数组**：由多种类型组成的数组，可以使用 `any[]` 类型声明表示，例如 `['apple', 2, true]`，其中包含了字符串、数字和布尔类型。
 
 除此之外，TypeScript 还支持**元组类型（tuple）**，它可以限定数组中每个元素的类型和数量。元组类型使用 `[type1, type2, ...]` 这样的语法来定义。例如，`[string, number]` 表示只包含两个元素，第一个元素为字符串类型，第二个元素为数字类型的数组。
+
+# tsconfig配置项
+
+## noImplicitAny any类型检查
+
+> Enable error reporting for expressions and declarations with an implied 'any' type.
+
+在某些不存在类型批注的情况下， 当 TypeScript 无法推断出变量的类型时，它将回退到any类型
+
+This can cause some errors to be missed, for example:
+
+```typescript
+function fn(s) {
+  // No error?
+  console.log(s.subtr(3));
+}
+fn(42);Try
+```
+
+Turning on `noImplicitAny` however TypeScript will issue an error whenever it would have inferred `any`:
+
+```typescript
+function fn(s) {Parameter 's' implicitly has an 'any' type.Parameter 's' implicitly has an 'any' type.
+  console.log(s.subtr(3));
+}
+```
+
+回想一下，在前面的某些例子中，TypeScript 没有为我们进行类型推断，这时候变量会采用最宽泛的类型：`any`。这并不是一件最糟糕的事情 —— 毕竟，使用 `any` 类型基本就和纯 JavaScript 一样了。
+
+但是，使用 `any` 通常会和使用 TypeScript 的目的相违背。
+
+你的程序使用越多的类型，那么在验证和工具上你的收益就越多，这意味着在编码的时候你会遇到越少的 bug。
+
+启用 [noImplicitAny](https://www.typescriptlang.org/tsconfig#noImplicitAny) 配置项，在遇到被隐式推断为 `any` 类型的变量时就会抛出一个错误。
+
+## strictNullChecks  null类型检查
+
+默认情况下，`null` 和 `undefined` 可以被赋值给其它任意类型。
+
+这会让你的编码更加容易，但世界上无数多的 bug 正是由于忘记处理 `null` 和 `undefined` 导致的 —— 有时候它甚至会带来[数十亿美元的损失](https://www.youtube.com/watch?v=ybrQvs4x0Ps)！
+
+[strictNullChecks](https://www.typescriptlang.org/tsconfig#strictNullChecks) 配置项让处理 `null` 和 `undefined` 的过程更加明显，让我们**不用**担心自己是否**忘记**处理 `null` 和 `undefined`。
+
+- 设置为`false`时，`null`和`undefined`会被忽略检查，不会报错；
+  ![image-20230308110008616](https://s2.loli.net/2023/03/08/dwNT89Qptg7hvXG.png)
+
+- 设置为`true`时，会检测出可能会出现null和undefined的情况，并报错。
+  ![image-20230308110023163](https://s2.loli.net/2023/03/08/kRnHC3fcZuyNMvT.png)
+
+## noEmitOnError  
+
+ts代码发生报错时，是否继续编译成js代码，默认为false，即报错也继续编译输出js文件。
+
+设置为true，则发生报错时，停止编译。
