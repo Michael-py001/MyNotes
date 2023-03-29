@@ -159,7 +159,20 @@ toggleInput(e, _key){
     }
     // 验证规则切换是否必填
     this.rules[_key][0].required = _check;
-},
+}
+```
+
+```js
+//校验规则
+const rules = reactive(createRules());
+// 创建表单容器
+let { resetFields, validate, validateInfos ,scrollToField, clearValidate } = useForm(props.formData, rules);
+//清除表单字段校验 
+function handleClearValidate(name) {
+  if(!validateInfos[name]) return
+  rules[name][0].required = false
+  clearValidate(name)
+}
 ```
 
 ![image-20230115145357668](https://s2.loli.net/2023/01/15/BqfiOAbol726WF9.png)
@@ -879,8 +892,8 @@ import { message as AMessage, Modal as AModal } from 'ant-design-vue';
    */
   const confirmEmptyFile = (ID) => {
     AModal.confirm({
-      title: '清空提醒',
-      content: '此操作将清空所有上传的文件。',
+      title: '删除警告',
+      content: '是否删除选定项目？删除后之前录入的信息将不会保存。',
       icon: createVNode(ExclamationCircleOutlined),
       okText: '立即清空',
       cancelText: '暂不清空',

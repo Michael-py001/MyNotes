@@ -124,3 +124,50 @@ const { foo, bar } = obj
 ```
 
 简言之，`ref()` 让我们能创造一种对任意值的 “引用”，并能够在不丢失响应性的前提下传递这些引用。这个功能很重要，因为它经常用于将逻辑提取到 [组合函数](https://cn.vuejs.org/guide/reusability/composables.html) 中。
+
+## 实际应用的使用区别
+
+使用`reactive`或者`ref`创建的响应式对象，都能在template模板中使用，且保持响应式。
+
+- ### 区别一：
+
+  reactive创建的对象，比如obj，需要对这个obj里面的属性进行修改，比如obj.a = 1。
+
+​		而使用ref创建的值，比如obj，需要obj.value进行修改。
+
+- ### 区别二：
+
+  reactive只能创建对象，ref可以创建所有类型，包括原始值类型，对象
+
+
+
+```js
+//使用reactive创建
+let DataState = reactive({
+  data:[]
+})
+
+//修改值时
+DataState.data = 'xxx'
+
+//另外一种情况
+let DataState2 = reactive({})
+//如果此时直接赋值，会失去响应式
+DataState2 = '{a:'xxx'}'
+```
+
+```js
+//使用ref创建
+let data = ref([])
+
+//修改值时
+data.value = 'xxx'
+```
+
+模板上用的区别：
+
+```html
+<div>reactive: {{ DataState.data }}</div>
+<div>ref: {{ data }}</div>
+```
+

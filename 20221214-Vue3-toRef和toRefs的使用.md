@@ -2,7 +2,31 @@
 
 ## toRef()
 
-基于响应式对象上的**一个属性**，创建一个对应的 ref。这样创建的 ref 与其源属性保持同步：改变源属性的值将更新 ref 的值，反之亦然。
+toRef()是Vue3中的一个API，用于将一个响应式对象的属性转换为一个ref对象。toRef()的语法如下：
+
+```js
+toRef(object, key)
+```
+
+其中，object是一个响应式对象，key是这个对象的一个属性名。toRef()会返回一个ref对象，这个ref对象的值与object[key]的值相同，并且当object[key]的值发生变化时，ref对象的值也会发生变化。但是，ref对象的值的变化不会影响到object[key]的值。
+
+例如，假设有一个响应式对象：
+
+```js
+const state = reactive({
+  count: 0
+});
+```
+
+你可以使用toRef()将state.count转换为一个ref对象：
+
+```js
+const countRef = toRef(state, 'count');
+```
+
+这样，countRef的值与state.count的值相同，当state.count的值发生变化时，countRef的值也会发生变化。但是，当你修改countRef的值时，不会影响到state.count的值。
+
+toRef()的作用是将一个响应式对象的属性转换为一个ref对象，方便在模板中使用。例如，你可以在模板中使用countRef.value来获取state.count的值。
 
 toRef和toRefs的区别就是，前者是给一个响应式对象中的一个属性，创建对应的ref。后者是给整个响应式对象所有对象都创建ref。
 
@@ -49,13 +73,38 @@ useSomeFeature(toRef(props, 'foo'))
 
 ## toRefs()
 
+toRefs()是Vue3中的一个API，用于将一个响应式对象的所有属性转换为ref对象。toRefs()的语法如下：
+
+```js
+toRefs(object)
+```
+
+其中，object是一个响应式对象。toRefs()会返回一个对象，这个对象的属性与object的属性相同，但是每个属性都被转换为一个ref对象。这些ref对象的值与object的属性值相同，并且当object的属性值发生变化时，ref对象的值也会发生变化。但是，ref对象的值的变化不会影响到object的属性值。
+
+例如，假设有一个响应式对象：
+
+```js
+const state = reactive({
+  count: 0,
+  message: 'Hello, world!'
+});
+```
+
+你可以使用toRefs()将state的所有属性转换为ref对象：
+
+```js
+const refs = toRefs(state);
+```
+
+这样，refs.count和refs.message都是ref对象，它们的值与state.count和state.message的值相同，当state.count和state.message的值发生变化时，refs.count和refs.message的值也会发生变化。但是，当你修改refs.count和refs.message的值时，不会影响到state.count和state.message的值。
+
+toRefs()的作用是将一个响应式对象的所有属性转换为ref对象，方便在模板中使用。例如，你可以在模板中使用refs.count.value和refs.message.value来获取state.count和state.message的值。
+
 将**一个响应式对象**转换为一个普通对象，这个普通对象的每个属性都是指向源对象相应属性的 ref。每个单独的 ref 都是使用 [`toRef()`](https://cn.vuejs.org/api/reactivity-utilities.html#toref) 创建的。
 
 在转换时，需要用`reactive`创建响应式对象才行。
 
 - **示例**
-
-  js
 
   ```js
   const state = reactive({
@@ -78,7 +127,7 @@ useSomeFeature(toRef(props, 'foo'))
   stateAsRefs.foo.value++
   console.log(state.foo) // 3
   ```
-
+  
   当从组合式函数中返回响应式对象时，`toRefs` 相当有用。使用它，消费者组件可以解构/展开返回的对象而不会失去响应性：
 
   ```js
@@ -150,6 +199,39 @@ setup() {
 ![image-20221214173720679](https://f.pz.al/pzal/2022/12/14/62dec812eb88a.png)
 
 ![image-20221214173736218](https://f.pz.al/pzal/2022/12/14/aab4f8ecec710.png)
+
+## toRefs实际使用案例2
+
+```js
+// 省市区数据
+let innerData = reactive({
+  provinceData: [],
+  cityData: [],
+  areaData: [],
+  streetData: [],
+});
+
+// 获取省的数据
+  getAddressData(0, 0).then(res =>{
+    innerCityPickerData.value = JSON.parse(JSON.stringify(props.cityPickerData))
+    innerCityPickerData.value.forEach(i=>{
+      if(i.name.includes('province')) {
+        // 转为响应式ref，当innerData.streetData = [xxx];发生变化时,list上也能同步变化
+        i['list'] = toRef(innerData,'provinceData')
+      }
+      else if(i.name.includes('city')) {
+        i['list'] = toRef(innerData,'cityData')
+      }
+      else if(i.name.includes('area')) {
+        i['list'] = toRef(innerData,'areaData')
+      }
+      else if(i.name.includes('street')) {
+        i['list'] = toRef(innerData,'streetData')
+      }
+    })
+  });
+
+```
 
 
 
