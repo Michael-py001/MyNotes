@@ -34,7 +34,8 @@ rules:[
 - 校验规则里面设置transform，把vallue转成Number类型
 - 设置input的v-model:value.number，vue自动转换float浮点值
 
-官方文档：[yiminghe/async-validator: validate form asynchronous (github.com)](https://github.com/yiminghe/async-validator)
+> 官方文档：[yiminghe/async-validator: validate form asynchronous (github.com)](https://github.com/yiminghe/async-validator)
+>
 
 ```js
 rules:[
@@ -57,4 +58,15 @@ rules:[
 **注意：**不能把`type: 'number'`和`len: 4`写在同一条规则里面，否则会出现Bug
 
 ![image-20230116104155817](https://s2.loli.net/2023/01/16/amZTlwUSq6fVKPL.png)
+
+## pattern使用
+
+```Js
+rules: [{
+          //只能输入大于0的数字
+          pattern: /^([1-9][0-9]*)$/,
+          message: '请输入大于0的数字'
+        }],
+    pattern: /^1[3456789]\d{9}$/, //校验电话
+```
 
