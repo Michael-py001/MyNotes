@@ -970,6 +970,47 @@ AMessage.error(res.message);
 
 > [Ant Design Vue (antdv.com)](https://2x.antdv.com/components/table-cn#API)
 
+## 设置单元格fixed
+
+对于列数很多的数据，可以固定前后的列，横向滚动查看其它数据，需要和 `scroll.x` 配合使用。
+
+> 若列头与内容不对齐或出现列重复，请指定**固定列**的宽度 `width`。如果指定 `width` 不生效或出现白色垂直空隙，请尝试建议留一列不设宽度以适应弹性布局，或者检查是否有超长连续字段破坏布局。
+>
+> 建议指定 `scroll.x` 为大于表格宽度的固定值或百分比。注意，且非固定列宽度之和不要超过 `scroll.x`。
+
+```html
+<template>
+  <a-table :columns="columns" :data-source="data" :scroll="{ x: 1300 }">
+    <template #action>
+      <a>action</a>
+    </template>
+  </a-table>
+</template>
+```
+
+```js
+const columns = [
+  {
+    title: 'Full Name',
+    width: 100,
+    dataIndex: 'name',
+    key: 'name',
+    fixed: 'left',
+  },
+    {
+    title: 'Action',
+    key: 'operation',
+    fixed: 'right',
+    width: 100,
+    slots: {
+      customRender: 'action',
+    },
+  },
+ ]
+```
+
+
+
 ## 设置row-key
 
 > 表格行 key 的取值，可以是字符串或一个函数

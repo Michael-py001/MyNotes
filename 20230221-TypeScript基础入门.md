@@ -232,6 +232,25 @@ myVar = "hello";  // 报错，不是指定的类型之一
 
 上面的例子中，变量 myVar 的类型被定义为 "number" 或 "boolean" 类型中的一种，可以存储任意一个类型的值。如果尝试存储其他类型，则会出现类型错误。
 
+### 案例二
+
+```ts
+type D = string | number;
+
+function printValue(value: D) {
+  console.log(value);
+}
+
+printValue("Hello"); // 输出：Hello
+printValue(42); // 输出：42
+```
+
+在上述代码中，`D` 类型是由 `string` 和 `number` 两个类型通过 `|` 符号组合而成的。 `printValue()` 函数接受一个 `D` 类型的参数，因此可以接受 `string` 或 `number` 类型的值作为参数。
+
+需要注意的是，联合类型中的值只能是其中一个类型中的值，而交叉类型中的值必须同时满足所有类型的要求。例如，类型 `string | number` 中的值可以是字符串或数字中的任意一种，而类型 `A & B` 中的值必须同时包含 `A` 和 `B` 中的所有属性和方法。
+
+
+
 联合类型在开发中非常有用，可以在需要支持多种类型的场景下使用，避免使用 any 类型或其他不符合规范的做法。同时，在使用联合类型的时候，还可以使用类型保护技术，例如 typeof 或 instanceof 等，以提高代码的健壮性和可读性。
 
 ## 泛型
@@ -430,6 +449,278 @@ const myArray: string[] = ['apple', 'banana', 'orange'];
 4. **任意类型数组**：由多种类型组成的数组，可以使用 `any[]` 类型声明表示，例如 `['apple', 2, true]`，其中包含了字符串、数字和布尔类型。
 
 除此之外，TypeScript 还支持**元组类型（tuple）**，它可以限定数组中每个元素的类型和数量。元组类型使用 `[type1, type2, ...]` 这样的语法来定义。例如，`[string, number]` 表示只包含两个元素，第一个元素为字符串类型，第二个元素为数字类型的数组。
+
+# declare语法
+
+案例代码：`declare type ConfigDuration = number | (() => void);`
+
+declare是TypeScript中的类型声明语法，用于声明一个类型别名。具体来说，declare type ConfigDuration = number | (() => void) 声明了一个类型别名 ConfigDuration，它的值可以是数字或者一个返回值为 void 的函数。
+
+除了用于声明类型别名外，declare 的语法还包括：
+
+1. 声明全局变量或函数：declare var、declare function
+2. 声明全局命名空间：declare namespace
+3. 声明模块：declare module
+4. 声明类、接口、枚举等：declare class、declare interface、declare enum
+
+这些语法都是用于在TypeScript中描述JavaScript代码结构的特殊语法。
+
+```ts
+declare type JointContent = VNodeTypes | MessageArgsProps;
+export declare type ConfigOnClose = () => void;
+```
+
+# () => void 是什么含义？
+
+`() => void` 是一个函数类型的字面量，表示这是一个不需要参数，返回值为 `void` 的函数类型。
+
+在 TypeScript 中，`void` 是一个特殊的类型，表示没有返回值的函数或表达式。例如：
+
+```ts
+function sayHello(): void {
+  console.log("Hello!");
+}
+
+const result: void = sayHello();
+console.log(result); // undefined
+```
+
+在上述代码中，`sayHello()` 函数的返回值是 `void`，也就是没有返回值。因此，`result` 的值为 `undefined`，因为它实际上没有值。 `void` 可以用于函数的返回值类型、变量的类型注解等场景。
+
+# interface 、type 、declare类型声明的语法有什么区别？
+
+`interface` 和 `type` 也是用于类型声明的语法，但它们与 `declare` 有一些区别。
+
+- `interface` 用于声明对象类型、类类型和函数类型等，可以用于描述对象的结构和行为，也可以用于进行类型检查。例如：
+
+```ts
+interface Person {
+  name: string;
+  age: number;
+  sayHello(): void;
+}
+```
+
+- `type` 用于声明类型别名，可以将一个类型命名为另一个名称，增加代码可读性和复用性。例如：
+
+  ```ts
+  type ConfigDuration = number | (() => void);
+  ```
+
+相对于 `declare`，`interface` 和 `type` 更加灵活，并且可以用于更多的场景。 `declare` **通常用于声明全局变量、函数、命名空间等外部类型**，而 `interface` 和 `type` 则更多用于**声明内部类型**。另外，`interface` 和 `type` 还支持继承、交叉类型等高级特性，使得类型声明更加丰富和灵活。
+
+# 继承
+
+继承是指一个类型继承另一个类型的属性和方法。在 TypeScript 中，可以使用 `extends` 关键字来继承一个接口或类的属性和方法。例如：
+
+```ts
+interface Animal {
+  name: string;
+  eat(): void;
+}
+
+interface Dog extends Animal {
+  bark(): void;
+}
+
+class GoldenRetriever implements Dog {
+  name: string;
+  constructor(name: string) {
+    this.name = name;
+  }
+  eat(): void {
+    console.log(`${this.name} is eating`);
+  }
+  bark(): void {
+    console.log(`${this.name} is barking`);
+  }
+}
+```
+
+在上述代码中，`Dog` 接口继承了 `Animal` 接口的属性和方法，而 `GoldenRetriever` 类实现了 `Dog` 接口，并且具有 `name`、`eat()` 和 `bark()` 方法。
+
+# 交叉类型
+
+交叉类型是指将多个类型合并成一个类型。在 TypeScript 中，可以使用 `&` 符号来表示交叉类型。
+
+## 案例一
+
+```ts
+interface Loggable {
+  log(message: string): void;
+}
+
+interface Serializable {
+  serialize(): string;
+}
+
+type LoggableAndSerializable = Loggable & Serializable;
+
+class Person implements LoggableAndSerializable {
+  log(message: string): void {
+    console.log(message);
+  }
+  serialize(): string {
+    return JSON.stringify(this);
+  }
+}
+```
+
+在上述代码中，`LoggableAndSerializable` 是一个交叉类型，它同时拥有 `Loggable` 和 `Serializable` 接口的属性和方法。 `Person` 类实现了 `LoggableAndSerializable` 接口，因此具有 `log()` 和 `serialize()` 方法。
+
+## 案例二
+
+```ts
+interface A {
+  a: string;
+}
+
+interface B {
+  b: number;
+}
+
+type C = A & B;
+
+const c: C = {
+  a: "Hello",
+  b: 42,
+};
+```
+
+在上述代码中，`C` 类型是由 `A` 和 `B` 两个接口通过 `&` 符号合并而成的。 `C` 类型中包含了 `A` 和 `B` 接口中的所有属性和方法，因此可以用来表示既有 `a` 属性又有 `b` 属性的对象。
+
+**继承**和**联合类型**和**交叉类型**都是 TypeScript 中非常强大的类型特性，可以用于将多个类型组合成一个更复杂的类型，提高代码的可读性和复用性。
+
+# implements (关键字)
+
+`implements` 是 TypeScript 中的一个关键字，用于类实现接口。当一个类实现了一个接口后，它需要实现接口中定义的所有属性和方法。如果没有实现接口中的所有属性和方法，TypeScript 编译器就会发出错误提示。
+
+下面是一个例子：
+
+```ts
+interface Animal {
+  name: string;
+  eat(): void;
+}
+
+class Dog implements Animal {
+  name: string;
+  constructor(name: string) {
+    this.name = name;
+  }
+  eat(): void {
+    console.log(`${this.name} is eating`);
+  }
+}
+
+const dog = new Dog("Buddy");
+dog.eat(); // 输出：Buddy is eating
+```
+
+在上述代码中，`Dog` 类需要实现 `Animal` 接口中定义的属性和方法，因此需要在 `Dog` 类中重新声明 `name` 和 `eat()` 方法。实际上，这里的 `name` 和 `eat()` 方法是 `Animal` 接口中定义的，但是在 `Dog` 类中需要重新声明一遍，并且实现它们的具体逻辑，才能让 `Dog` 类符合 `Animal` 接口的定义。
+
+关于 `class Dog implements Animal`，它的作用是让 `Dog` 类实现 `Animal` 接口。通过这样的方式，TypeScript 就会检查 `Dog` 类是否实现了 `Animal` 接口中定义的所有属性和方法。如果 `Dog` 类没有实现 `Animal` 接口中的所有属性和方法，TypeScript 编译器就会发出错误提示。
+
+`implements` 关键字可以帮助我们在编写代码时发现一些错误，例如忘记实现接口中的某个方法或属性等。它也可以提高代码的可读性和可维护性，使得代码更加规范和清晰。
+
+在实际开发中，接口可以用来描述对象的结构和行为，而类可以用来实现接口中定义的行为。通过接口和类的结合使用，我们可以让代码更加规范和清晰，提高代码的可读性和可维护性。
+
+# 类型保护
+
+使用类型保护技术可以使代码更加健壮和可读，以下是一些常见的类型保护技术配合联合类型的示例：
+
+## 1. typeof：使用 typeof **来检查变量的类型**
+
+```ts
+function printValue(value: string | number) {
+  if (typeof value === 'string') {
+    console.log(value.toUpperCase());
+  } else {
+    console.log(value.toFixed(2));
+  }
+}
+```
+
+## 2. instanceof：使用 instanceof 来检查变量是否是特定类的实例
+
+```ts
+class Person {
+  name: string;
+  constructor(name: string) {
+    this.name = name;
+  }
+}
+
+class Animal {
+  type: string;
+  constructor(type: string) {
+    this.type = type;
+  }
+}
+
+function printInfo(info: Person | Animal) {
+  if (info instanceof Person) {
+    console.log(`Person: ${info.name}`);
+  } else {
+    console.log(`Animal: ${info.type}`);
+  }
+}
+```
+
+## 3.   in：使用 in 来检查对象是否具有某个属性
+
+```ts
+interface Square {
+  kind: 'square';
+  size: number;
+}
+
+interface Rectangle {
+  kind: 'rectangle';
+  width: number;
+  height: number;
+}
+
+type Shape = Square | Rectangle;
+
+function getArea(shape: Shape) {
+  if ('size' in shape) {
+    return shape.size ** 2;
+  } else {
+    return shape.width * shape.height;
+  }
+}
+```
+
+## 4. 自定义类型保护函数：使用自定义类型保护函数来判断变量是否满足某些条件
+
+```ts
+interface Fish {
+  type: 'fish';
+  swim: () => void;
+}
+
+interface Bird {
+  type: 'bird';
+  fly: () => void;
+}
+
+type Animal = Fish | Bird;
+
+function isFish(animal: Animal): animal is Fish {
+  return (animal as Fish).type === 'fish';
+}
+
+function move(animal: Animal) {
+  if (isFish(animal)) {
+    animal.swim();
+  } else {
+    animal.fly();
+  }
+}
+```
+
+
 
 # tsconfig配置项
 

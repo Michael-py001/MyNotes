@@ -1,4 +1,4 @@
-# 20230309-Vue3中如何描述VNode节点？
+# 20230309-Vue3中如何描述VNode节点？配合antd Vue 的Modal.confirm自定义弹窗内容
 
 在使用antd Vue组件时，可以通过函数式`AModal.confirm()`很方便的调出确认提示框，相比于在模板中使用Modal组件，函数式的的调用方法适合展示简单的文本信息，如果需要对文本做一些样式调整是没有那么方便的。 传入参数中,`content`字段默认支持VNode节点，或者直接传入字符串。
 
@@ -122,3 +122,21 @@ content:".... \n注：设为审核员的成员，姓名及手机号码会在下�
 效果图：
 
 ![image-20230309165724457](https://s2.loli.net/2023/03/09/L8DMcPAf4Sht3Bl.png)
+
+## 如何自定义按钮？
+
+![image-20230426135348181](https://s2.loli.net/2023/04/26/AJRaNtnoxgfUyM2.png)
+
+遇到一些傻逼的测试，连个确认按钮都要统一大小，为了不跟这种人纠缠就花点时间处理算了。
+
+其实下面两个按钮：取消，确认，都是可以传入Vnode的。
+
+![image-20230426135416802](https://s2.loli.net/2023/04/26/ZTS1h9LjF76rkwW.png)
+
+照葫芦画瓢，同样的方法炮制一个VNode，第二个参数写上style。
+
+![image-20230426135655965](https://s2.loli.net/2023/04/26/IQTtO7kFhdJM6CH.png)
+
+效果如下：
+
+![image-20230426135750886](https://s2.loli.net/2023/04/26/mRLfU496TxEaigS.png)

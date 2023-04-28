@@ -70,3 +70,24 @@ rules: [{
     pattern: /^1[3456789]\d{9}$/, //校验电话
 ```
 
+## 数字格式化
+
+```js
+{
+        el: 'a-input-number',
+        label: '招标控制价',
+        name: 'tenderPrice',
+        type: 'number',
+        colspan: 12,
+        props: {
+          formatter: value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+          parser: value => value.replace(/\$\s?|(,*)/g, ''),
+          setp: 0.1,
+          min: 0,
+          precision: 2,
+        },
+        rules: [{ required: true, message: '请输入招标控制价' }],
+      },
+```
+
+![image-20230417101622905](https://s2.loli.net/2023/04/17/rcN6bOVqWfhLDit.png)

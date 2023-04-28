@@ -58,3 +58,23 @@ if (index >= leftCount.value) {
     }
 ```
 
+同理在限制文件大小时也生效，不会更新到数组
+
+```js
+if (isLessMax) {
+    if (limitFileTypes.includes(fileType?.toLowerCase()) > -1) {
+      return true;
+    } else {
+      AMessage.error('请按要求上传！');
+      return Promise.reject();
+    }
+  } else {
+    if (imageType.includes(suffix)) {
+      AMessage.error(`图片大小不能超过 ${maxSize}MB!`);
+    } else {
+      AMessage.error(`文件大小不能超过 ${maxSize}MB!`);
+    }
+    return Promise.reject();
+  }
+```
+
