@@ -27,9 +27,19 @@ JavaScript 中已经有一些基本类型可用：`boolean`、 `bigint`、 `null
 -  [`never`](https://www.typescriptlang.org/play#example/unknown-and-never) （这种类型不可能发生）
 -  `void` （返回 `undefined` 或没有返回值的函数）。
 
-所以TS中的类型一共有 8+4 = 12种。
-
 构建类型有两种语法： [接口和类型](https://www.typescriptlang.org/play/?e=83#example/types-vs-interfaces)。 你应该更喜欢 `interface`。当需要特定功能时使用 `type` 。
+
+### Other important TypeScript types
+
+| Type           | Explanation                                   |
+| :------------- | :-------------------------------------------- |
+| `unknown`      | the top type.                                 |
+| `never`        | the bottom type.                              |
+| object literal | eg `{ property: Type }`                       |
+| `void`         | for functions with no documented return value |
+| `T[]`          | mutable arrays, also written `Array<T>`       |
+| `[T, T]`       | tuples, which are fixed-length but mutable    |
+| `(t: T) => U`  | functions                                     |
 
 # 定义类型
 
