@@ -1414,3 +1414,466 @@ let bb = filter2<number,(arg: number) => boolean>([1,2,3],(item) => item > 2)
 ![image-20230508185758433](https://s2.loli.net/2023/05/08/BTFpy2t1QDLCrus.png)
 
 这里就要无缘无故要多写一个额外的类型参数。
+
+> **Rule**: Always use as few type parameters as possible
+> 规则：始终使用尽可能少的类型参数
+
+## Type Parameters Should Appear Twice 类型参数应该出现两次
+
+有时我们会忘记一个函数可能不需要是泛型的：
+
+```ts
+function greet<Str extends string>(s: Str) {
+  console.log("Hello, " + s);
+}
+ 
+greet("world");
+```
+
+我们可以很容易地编写一个更简单的版本：
+
+```ts
+function greet(s: string) {
+  console.log("Hello, " + s);
+}
+```
+
+请记住，类型参数用于关联多个值的类型。如果一个类型参数在函数签名中只使用一次，那么它没有任何关联。
+
+> **Rule**: If a type parameter only appears in one location, strongly reconsider if you actually need it
+> 规则：如果一个类型参数只出现在一个位置，强烈重新考虑你是否真的需要它
+
+
+
+# Optional Parameters 可选参数
+
+JavaScript 中的函数通常采用可变数量的参数。例如， `number` 的 `toFixed` 方法采用可选的数字计数：
+
+```ts
+function f(n: number) {
+  console.log(n.toFixed()); // 0 arguments
+  console.log(n.toFixed(3)); // 1 argument
+}
+```
+
+我们可以通过使用 `?` 将参数标记为可选来在 TypeScript 中对其进行编写：
+
+```ts
+function f(n?:number) {
+    // console.log(n.toFixed());
+}
+f()
+f(10)
+```
+
+虽然参数被指定为 `number` 类型，但 `x` 参数实际上将具有 `number | undefined` 类型，因为JavaScript 中未指定的参数获得值 `undefined` 。
+
+你可以设置一个默认值：
+
+> 现在在 `f` 的主体中， `x` 将具有类型 `number` ，因为任何 `undefined` 参数都将被替换为 `10` 。
+
+```ts
+function f(n = 10) {
+    // console.log(n.toFixed());
+}
+```
+
+请注意，当参数是可选的时，调用者始终可以传递 `undefined` ，因为这只是模拟了一个“缺失”参数：
+
+```ts
+declare function f2(n?: number): void;
+f2();
+f2(10);
+f2(undefined)
+```
+
+## Optional Parameters in Callbacks 回调中的可选参数
+
+一旦了解了可选参数和函数类型表达式，在编写调用回调的函数时很容易犯以下错误：
+
+![image-20230516163621619](https://s2.loli.net/2023/05/16/SmBKCX9GgrvAeJ5.png)
+
+> **Rule**: When writing a function type for a callback, *never* write an optional parameter unless you intend to *call* the function without passing that argument
+>
+> 规则：为回调编写函数类型时，切勿编写可选参数，除非您打算在不传递该参数的情况下调用该函数
+
+# Function Overloads 函数重载 
+
+一些函数可以在不同的参数数量和类型的情况下调用。例如，您可以编写一个函数来生成 `Date` ，它采用时间戳（一个参数）或月/日/年规范（三个参数）。
+
+在 TypeScript 中，我们可以通过编写重载签名*overload signatures*来指定一个可以以不同方式调用的函数。为此，编写一些函数签名（通常是两个或更多），然后是函数体：
+
+![image-20230516170334398](https://s2.loli.net/2023/05/16/EQXd4YBPjDVASmn.png)
+
+在这个例子中，我们写了两个重载：一个接受一个参数，另一个接受三个参数。前两个签名称为重载签名。
+
+然后，我们编写了一个具有兼容签名的函数实现。函数有一个实现签名，但是这个签名不能被直接调用。即使我们在必需的参数之后写了一个带有两个可选参数的函数，它也不能用两个参数调用！
+
+## Overload Signatures and the Implementation Signature 重载签名和实现签名
+
+这是一个常见的混淆来源。通常人们会写这样的代码并且不明白为什么会出错：
+
+```ts
+function fn(x: string): void;
+function fn() {
+  // ...
+}
+// Expected to be able to call with zero arguments
+fn();
+Expected 1 arguments, but got 0.
+```
+
+同样，用于编写函数体的签名不能从外部“看到”。
+
+> 实现的签名从外部是不可见的。编写重载函数时，您应该始终在函数的实现之上有两个或更多签名
+
+实现签名还必须与重载签名兼容。例如，这些函数有错误，因为实现签名没有以正确的方式匹配重载：
+
+> 在这个例子中，如果传入的参数是字符串类型，则返回值类型为字符串类型；如果传入的参数是数字类型，则返回值类型为布尔类型。但是，无论传入的参数类型是什么，函数体中始终返回的是字符串 "oops"。这可能会导致函数的行为与预期不符,
+
+```ts
+function fn(x: string): string;
+// Return type isn't right
+function fn(x: number): boolean;
+// This overload signature is not compatible with its implementation signature.
+function fn(x: string | number) {
+  return "oops";
+}
+```
+
+> 这个例子中，函数实现的参数类型和上面的函数前面不一致。
+
+```ts
+function fn(x: boolean): void;
+// Argument type isn't right
+function fn(x: string): void;
+// This overload signature is not compatible with its implementation signature.
+function fn(x: boolean) {}
+```
+
+正确的实现：
+
+> 在函数体中，我们使用 `typeof` 运算符判断参数的类型，如果是字符串类型，则将其转换为大写字母并返回；如果是数字类型，则判断其是否大于 0 并返回相应的布尔值。
+
+```ts
+function fn2(x: string): string;
+function fn2(x: number): boolean;
+function fn2(x: string | number) {
+  if (typeof x === 'string') {
+    return x.toUpperCase();
+  } else {
+    return x > 0;
+  }
+}
+```
+
+## Writing Good Overloads 编写好的重载
+
+与泛型一样，在使用函数重载时也应遵循一些准则。遵循这些原则会让你的函数更容易调用，更容易理解，更容易实现。
+
+让我们考虑一个返回字符串或数组长度的函数：
+
+```ts
+function len(s: string): number;
+function len(arr: any[]): number;
+function len(x: any) {
+  return x.length;
+}
+```
+
+这个功能很好；我们可以用字符串或数组调用它。但是，我们不能使用可能是字符串或数组的值来调用它，因为 TypeScript 只能将函数调用解析为单个重载：
+
+```ts
+function len(s: string): number;
+function len(s: any[]): number;
+function len(x: any) {
+    return x.length;
+}
+
+len(""); // OK
+len([0]); // OK
+len(Math.random() > 0.5 ? "hello" : [0]);
+```
+
+![image-20230516173705739](https://s2.loli.net/2023/05/16/cXwxo5K4s1pJ8Gu.png)
+
+因为两个重载具有相同的参数计数和相同的返回类型，我们可以改为编写函数的非重载版本：
+
+```ts
+function len(x: any[] | string) {
+  return x.length;
+}
+```
+
+这好多了！调用者可以使用任何一种值来调用它，作为额外的好处，我们不必找出正确的实现签名。
+
+> Always prefer parameters with union types instead of overloads when possible
+> 在可能的情况下，始终优先使用具有联合类型的参数而不是重载
+
+### Declaring `this` in a Function 函数中的this
+
+TypeScript 将通过代码流分析推断函数中 `this` 的含义，例如：
+
+```ts
+const user = {
+  id: 123,
+ 
+  admin: false,
+  becomeAdmin: function () {
+    this.admin = true;
+  },
+};
+```
+
+TypeScript 理解函数 `user.becomeAdmin` 有一个对应的 `this` ，它是外部对象 `user` 。 `this` ，在很多情况下就足够了，但是在很多情况下，您需要更多地控制 `this` 代表的对象。 JavaScript 规范声明你不能有一个名为 `this` 的参数，因此 TypeScript 使用该语法空间让你在函数体中声明 `this` 的类型。
+
+![image-20230516183110043](https://s2.loli.net/2023/05/16/LGeiMoQRIm58zkO.png)
+
+![image-20230516183149423](https://s2.loli.net/2023/05/16/RuQ3NbLKd1Oer6C.png)
+
+这种模式在回调式 API 中很常见，在这种情况下，另一个对象通常会控制何时调用您的函数。请注意，您需要使用 `function` 而不是箭头函数来获得此行为：
+
+![image-20230516183207866](https://s2.loli.net/2023/05/16/JInel4DFWYLhvc9.png)
+
+# Other Types to Know About 其他需要知道的类型
+
+在使用函数类型时，您需要识别一些经常出现的其他类型。与所有类型一样，您可以在任何地方使用它们，但它们在函数上下文中尤为重要。
+
+## void
+
+`void` 表示不返回值的函数的返回值。是一种推断类型，只要函数没有任何 `return` 语句，或者不从这些 return 语句返回任何显式值。
+
+```ts
+// The inferred return type is void
+function noop() {
+  return;
+}
+```
+
+![image-20230516183551751](https://s2.loli.net/2023/05/16/YeMSiC3BlraUjOp.png)
+
+在 JavaScript 中，不返回任何值的函数将隐式返回值 `undefined` 。但是， `void` 和 `undefined` 在 TypeScript 中不是一回事。
+
+> `void` is not the same as `undefined`.
+> `void` 与 `undefined` 不同
+
+- `void` 表示没有返回值的函数或表达式的类型。
+- `undefined` 表示一个变量或表达式的值为未定义或不存在。
+
+`void` 和 `undefined` 是不同的类型，但是它们之间存在一定的关系。如果一个函数的返回值类型为 `void`，则该函数的返回值为 `undefined`。
+
+## object
+
+特殊类型 `object` 指的是任何不是原始类型的值（ `string` 、 `number` 、 `bigint` 、 `boolean` 、 `symbol` 、 `null` 或 `undefined` ）。这不同于空对象类型 `{ }` ，也不同于全局类型 `Object` 。您很可能永远不会使用 `Object` 。
+
+> `object` is not `Object`. **Always** use `object`!
+> `object` 不是 `Object` 。始终使用 `object` ！
+
+请注意，在 JavaScript 中，函数值是对象：它们具有属性，在其原型链中具有 `Object.prototype` ，是 `instanceof Object` ，您可以对它们调用 `Object.keys` ，等等。因此，函数类型在 TypeScript 中被视为 `object` 。
+
+## unknown
+
+`unknown` 类型表示任何值。这类似于 `any` 类型，但更安全，因为使用 `unknown` 值做任何事情都是不合法的：
+
+```ts
+function f1(a: any) {
+  a.b(); // OK
+}
+function f2(a: unknown) {
+  a.b();
+// 'a' is of type 'unknown'.
+}
+```
+
+这在描述函数类型时很有用，因为您可以描述接受任何值的函数，而无需在函数主体中包含 `any` 值。
+
+相反，您可以描述一个返回未知类型值的函数：
+
+```ts
+function safeParse(s: string): unknown {
+  return JSON.parse(s);
+}
+ 
+// Need to be careful with 'obj'!
+const obj = safeParse(someRandomString);
+```
+
+## never
+
+有些函数从不返回值：
+
+```ts
+function fail(msg: string): never {
+  throw new Error(msg);
+}
+```
+
+`never` 类型表示从未观察到的值。在返回类型中，这意味着函数抛出异常或终止程序的执行。
+
+当 TypeScript 确定联合中没有任何内容时，也会出现 `never` 。
+
+![image-20230517104510687](https://s2.loli.net/2023/05/17/rBGoQLPJwkaq74e.png)
+
+## Function
+
+全局类型 `Function` 描述了诸如 `bind` 、 `call` 、 `apply` 和其他出现在 JavaScript 中所有函数值上的属性。它还具有 `Function` 类型的值总是可以被调用的特殊属性；这些调用返回 `any` ：
+
+```ts
+function doSomething(f: Function) {
+  return f(1, 2, 3);
+}
+```
+
+这是一个无类型的函数调用，通常最好避免，因为 `any` 返回类型不安全。
+
+如果您需要接受任意函数但不打算调用它， `() => void` 类型通常更安全。
+
+# Rest Parameters and Arguments 剩余形参和参数
+
+## Rest Parameters 剩余形参
+
+除了使用可选参数或重载来制作可以接受各种固定参数计数的函数外，我们还可以使用剩余参数定义接受无限数量参数的函数。
+
+其余参数出现在所有其他参数之后，并使用 `...` 语法：
+
+```ts
+function multiply(n: number, ...m: number[]) {
+  return m.map((x) => n * x);
+}
+// 'a' gets value [10, 20, 30, 40]
+const a = multiply(10, 1, 2, 3, 4);
+```
+
+在 TypeScript 中，这些参数上的类型注释隐式地是 `any[]` 而不是 `any` ，并且给定的任何类型注释都必须是 `Array<T>` 或 `T[]` 形式，或者是元组类型（我们将在后面学习） ).
+
+## Rest Arguments 剩余参数
+
+相反，我们可以使用扩展语法从数组中提供可变数量的参数。例如，数组的 `push` 方法可以接受任意数量的参数：
+
+```ts
+const arr1 = [1, 2, 3];
+const arr2 = [4, 5, 6];
+arr1.push(...arr2);
+```
+
+请注意，通常，TypeScript 不会假定数组是不可变的。这可能会导致一些令人惊讶的行为：
+
+```ts
+// Inferred type is number[] -- "an array with zero or more numbers",
+// not specifically two numbers
+const args = [8, 5];
+const angle = Math.atan2(...args);
+//A spread argument must either have a tuple type or be passed to a rest parameter.
+```
+
+![image-20230517113114132](https://s2.loli.net/2023/05/17/9asOcTedXhq4Mn2.png)
+
+这种情况的最佳解决方案在一定程度上取决于您的代码，但通常 `const` 上下文是最直接的解决方案：
+
+```ts
+// Inferred as 2-length tuple
+const args = [8, 5] as const;
+// OK
+const angle = Math.atan2(...args);
+```
+
+![image-20230517113214226](https://s2.loli.net/2023/05/17/GVR7ODWxbuyqT8t.png)
+
+# Parameter Destructuring 参数解构
+
+您可以使用参数解构来方便地将作为参数提供的对象解包到函数体中的一个或多个局部变量中。在 JavaScript 中，它看起来像这样：
+
+```ts
+function sum({ a, b, c }) {
+  console.log(a + b + c);
+}
+sum({ a: 10, b: 3, c: 9 });
+```
+
+对象的类型注释在解构语法之后：
+
+```ts
+function sum({ a, b, c }: { a: number; b: number; c: number }) {
+  console.log(a + b + c);
+}
+```
+
+这看起来有点冗长，但您也可以在此处使用命名类型：
+
+```ts
+// Same as prior example
+type ABC = { a: number; b: number; c: number };
+function sum({ a, b, c }: ABC) {
+  console.log(a + b + c);
+}
+```
+
+# Assignability of Functions 功能的可分配性
+
+### Return type`void`
+
+函数的 `void` 返回类型可能会产生一些异常但符合预期的行为。
+
+返回类型为 `void` 的上下文类型不会强制函数不返回某些内容。另一种说法是具有 `void` 返回类型 ( `type vf = () => void` ) 的上下文函数类型，在实现时**可以返回任何其他值**，但它将被忽略。
+
+因此， `() => void` 类型的以下实现是有效的：
+
+```ts
+type voidFunc = () => void;
+ 
+const f1: voidFunc = () => {
+  return true;
+};
+ 
+const f2: voidFunc = () => true;
+ 
+const f3: voidFunc = function () {
+  return true;
+};
+```
+
+而当其中一个函数的返回值赋值给另一个变量时，它会保留 `void` 的类型：
+
+```ts
+const v1 = f1();
+ 
+const v2 = f2();
+ 
+const v3 = f3();
+```
+
+此行为的存在使得以下代码有效，即使 `Array.prototype.push` 返回一个数字并且 `Array.prototype.forEach` 方法需要一个返回类型为 `void` 的函数。
+
+```ts
+const src = [1, 2, 3];
+const dst = [0];
+ 
+src.forEach((el) => dst.push(el));
+```
+
+还有一种需要注意的特殊情况，当文字函数定义具有 `void` 返回类型时，该函数不得返回任何内容。
+
+```ts
+function f2(): void {
+  // @ts-expect-error
+  return true;
+}
+ 
+const f3 = function (): void {
+  // @ts-expect-error
+  return true;
+};
+```
+
+### @ts-expect-error
+
+`@ts-expect-error` 是 TypeScript 中的一个特殊注释，用于告诉 TypeScript 编译器在该行代码上忽略类型检查错误。通常情况下，TypeScript 编译器会在代码中发现类型检查错误时报错，以帮助开发者尽早发现和修复问题。但是，在某些情况下，我们可能需要暂时忽略某些类型检查错误，以便进行一些实验性的代码编写或快速的原型开发。
+
+使用 `@ts-expect-error` 注释可以告诉 TypeScript 编译器在该行代码上忽略类型检查错误。
+
+```ts
+const x: string = 123; // Type 'number' is not assignable to type 'string'.
+// @ts-expect-error
+const y: string = 123; // No error is reported by TypeScript compiler.
+```
+
