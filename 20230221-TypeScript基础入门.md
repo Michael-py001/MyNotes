@@ -338,34 +338,34 @@ deleteUser({
      // Error: Duplicate identifier 'Window'.
     ```
 
-  
-  ## 给Window拓展属性
-  
-  ```ts
-  interface Window {
-    title: string
+
+## 给Window拓展属性
+
+```ts
+interface Window {
+  title: string
+}
+
+interface TypeScriptAPI {
+  version: string
+  transpileModule: (input: string, compilerOptions: any) => string
+}
+
+interface Window {
+  ts: TypeScriptAPI
+}
+
+window.ts = {
+  version : '1.0.0',
+  transpileModule : (input: string, compilerOptions: any) => {
+    return input
   }
-  
-  interface TypeScriptAPI {
-    version: string
-    transpileModule: (input: string, compilerOptions: any) => string
-  }
-  
-  interface Window {
-    ts: TypeScriptAPI
-  }
-  
-  window.ts = {
-    version : '1.0.0',
-    transpileModule : (input: string, compilerOptions: any) => {
-      return input
-    }
-  }
-  
-  console.log("window:",window.ts.version);
-  ```
-  
-  
+}
+
+console.log("window:",window.ts.version);
+```
+
+
 
 1. interface和type定义的类型可以相互使用，没有差别
 
@@ -1142,6 +1142,8 @@ ts代码发生报错时，是否继续编译成js代码，默认为false，即�
 
 在 JavaScript 中，函数除了可调用之外，还可以具有属性。但是，函数类型表达式语法不允许声明属性。如果我们想描述一些可以用属性调用的东西，我们可以在对象类型中写一个调用签名：
 
+> 实现函数上具有自定义属性，且有函数调用的参数类型声明
+
 ```ts
 type DescribableFunction = {
   description: string;
@@ -1159,11 +1161,12 @@ myFunc.description = "default description";//在函数上挂载属性
 doSomething(myFunc);
 ```
 
-请注意，与函数类型表达式相比，语法略有不同 - 在参数列表和返回类型之间使用 `:` 而不是 `=>` 。
+> 请注意，与函数类型表达式相比，语法略有不同 - 在参数列表和返回类型之间使用 `:` 而不是 `=>` 。
+>
 
 ![image-20230505175053100](https://s2.loli.net/2023/05/05/LvSGakIcyTYD1jP.png)
 
-# Construct Signatures 构造签名
+# Construct Signatures 构造函数签名
 
 JavaScript 函数也可以使用 `new` 运算符调用。TypeScript 将这些称为构造函数，因为它们通常会创建一个新对象。您可以通过在调用签名前面添加 `new` 关键字来编写构造签名：
 
