@@ -273,3 +273,113 @@ class NameChecker implements Checkable {
 在这个例子中，我们可能期望 `s` 的类型会受到 `check` 函数的 `name: string` 参数的影响。但实际上并不会 - `implements` 子句不会改变类体的检查方式或其类型推断。
 
 同样，使用可选属性实现接口也不会创建该属性：
+
+## extends 类的继承
+
+类可以继承其他基类，会拥有基类的所有属性和方法，同时可以自定义自己的属性成员。
+
+```ts
+class Animal {
+  move() {
+    console.log("move")
+  }
+}
+
+class Dog extends Animal {
+  woof(times: number) {
+    for (let i = 0; i < times; i++) {
+      console.log("woof")
+    }
+  }
+}
+
+const d = new Dog()
+
+d.move()
+d.woof(3)
+```
+
+#### Overriding Methods 重写方法
+
+派生类还可以重写基类字段或属性。可以使用 `super.` 语法访问基类方法。请注意，由于 JavaScript 类是一个简单的查找对象，因此没有“超级字段”的概念。
+
+TypeScript 强制派生类始终是其基类的子类型。
+
+例如，下面是重写方法的合法方法：
+
+```ts
+class Base {
+  greet() {
+    console.log("hello world")
+  }
+}
+
+class Derived extends Base {
+  greet(name?: string) {
+    if(!name) {
+      super.greet()
+    } else {
+      console.log(`hello ${name.toUpperCase()}`)
+    }
+  }
+}
+
+const derived = new Derived()
+derived.greet()
+derived.greet("reader")
+```
+
+派生类遵循其基类协定非常重要。请记住，通过基类引用引用派生类实例是非常常见的（并且始终是合法的！）：
+
+```ts
+// Alias the derived instance through a base class reference
+const b: Base = d;
+// No problem
+b.greet();
+```
+
+如果 `Derived` 没有遵循 `Base` 的协定怎么办？
+
+```ts
+class Derived2 extends Base {
+  greet(name:string) {
+    //报错
+  }
+}
+```
+
+![image-20230608184102535](https://s2.loli.net/2023/06/08/cFUu6bwf9NiRjGQ.png)
+
+#### type-only Field Declarations 仅类型字段声明
+
+当 `target >= ES2022` 或 `useDefineForClassFields` 为 `true` 时，类字段在父类构造函数完成后初始化，覆盖父类设置的任何值。当您只想为继承的字段重新声明更准确的类型时，这可能是一个问题。要处理这些情况，您可以编写 `declare` 来向 TypeScript 指示此字段声明不应有运行时影响。
+
+```ts
+interface Animal {
+  dateOfBirth: any;
+}
+ 
+interface Dog extends Animal {
+  breed: any;
+}
+ 
+class AnimalHouse {
+  resident: Animal;
+  constructor(animal: Animal) {
+    this.resident = animal;
+  }
+}
+ 
+class DogHouse extends AnimalHouse {
+  // Does not emit JavaScript code,
+  // only ensures the types are correct
+  resident: Dog;
+  constructor(dog: Dog) {
+    super(dog);
+  }
+}
+```
+
+![image-20230608184816362](https://s2.loli.net/2023/06/08/XTBmsDhHGYlW5b1.png)
+
+#### Initialization Order 初始化顺序
