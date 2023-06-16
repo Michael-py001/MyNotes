@@ -12,6 +12,8 @@
 
 ## 使用案例
 
+![image-20230616115003018](https://s2.loli.net/2023/06/16/MNQY8sR4t75JCAS.png)
+
 ```html
 <script src="https://cdn.jsdelivr.net/npm/luckyexcel/dist/luckyexcel.umd.js"></script>
 <script>
