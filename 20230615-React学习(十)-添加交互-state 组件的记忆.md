@@ -144,11 +144,10 @@ const [showMore, setShowMore] = useState(false);
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
    ></iframe>
-
 如果它们不相关，那么存在多个 state 变量是一个好主意，例如本例中的 `index` 和 `showMore`。但是，如果你发现经常同时更改两个 state 变量，那么最好将它们合并为一个。例如，如果你有一个包含多个字段的表单，那么有一个值为对象的 state 变量比每个字段对应一个 state 变量更方便。 [选择 state 结构](https://zh-hans.react.dev/learn/choosing-the-state-structure)在这方面有更多提示。
 
-> ##### 深入探讨: React 如何知道返回哪个 state 
->
+## 深入探讨: React 如何知道返回哪个 state 
+
 > 你可能已经注意到，`useState` 在调用时没有任何关于它引用的是*哪个* state 变量的信息。没有传递给 `useState` 的“标识符”，它是如何知道要返回哪个 state 变量呢？它是否依赖于解析函数之类的魔法？答案是否定的。
 >
 > 相反，为了使语法更简洁，**在同一组件的每次渲染中，Hooks 都依托于一个稳定的调用顺序**。这在实践中很有效，因为如果你遵循上面的规则（“只在顶层调用 Hooks”），Hooks 将始终以相同的顺序被调用。此外，[linter 插件](https://www.npmjs.com/package/eslint-plugin-react-hooks)也可以捕获大多数错误。
@@ -158,78 +157,78 @@ const [showMore, setShowMore] = useState(false);
 > 这个例子**没有使用 React**，但它让你了解 `useState` 在内部是如何工作的：
 >
 > <iframe src="https://codesandbox.io/embed/laughing-snow-x6f50i?fontsize=14&hidenavigation=1&theme=dark"
->      style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
->      title="laughing-snow-x6f50i"
+>  style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+>   title="laughing-snow-x6f50i"
 >      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
 >      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
->    ></iframe>
->
+>       ></iframe>
+>    
 > ```js
-> let componentHooks = [];
+>let componentHooks = [];
 > let currentHookIndex = 0; //专门用来记录useState调用的次数
 > 
 > // useState 在 React 中是如何工作的（简化版）
 > function useState(initialState) {
->   let pair = componentHooks[currentHookIndex];
->   if (pair) {//pair已存在，直接返回当前pair，同时currentHookIndex++，等下一次调用时不存在会走下面的逻辑
->     currentHookIndex++;
->     return pair;
->   }
-> 
+> let pair = componentHooks[currentHookIndex];
+> if (pair) {//pair已存在，直接返回当前pair，同时currentHookIndex++，等下一次调用时不存在会走下面的逻辑
+>    currentHookIndex++;
+>    return pair;
+>    }
+>    
 >   // 这是我们第一次进行渲染
->   // 所以新建一个 state pair 然后存储它
+> // 所以新建一个 state pair 然后存储它
 >   pair = [initialState, setState];
-> 
+>   
 >   function setState(nextState) {
->     // 当用户发起 state 的变更，
->     // 把新的值放入 pair 中，为什么是pair[0]呢？原因是useState返回的就是一个数组，数组第一个就是值
+>  // 当用户发起 state 的变更，
+>    // 把新的值放入 pair 中，为什么是pair[0]呢？原因是useState返回的就是一个数组，数组第一个就是值
 >     pair[0] = nextState; 
 >     updateDOM();
->   }
-> 
+>    }
+>    
 >   // 存储这个 pair 用于将来的渲染
->   // 并且为下一次 hook 的调用做准备
+> // 并且为下一次 hook 的调用做准备
 >   componentHooks[currentHookIndex] = pair;
 >   currentHookIndex++;
 >   return pair;
-> }
-> 
+>   }
+>   
 > function Gallery() {
->   // 每次调用 useState() 都会得到新的 pair
->   const [index, setIndex] = useState(0);
+> // 每次调用 useState() 都会得到新的 pair
+> const [index, setIndex] = useState(0);
 >   const [showMore, setShowMore] = useState(false);
-> 
+>   
 >   function handleNextClick() {
->     setIndex(index + 1);
+>  setIndex(index + 1);
 >   }
-> 
+>    
 >   function handleMoreClick() {
->     setShowMore(!showMore);
+>  setShowMore(!showMore);
 >   }
-> 
+>    
 >   let sculpture = sculptureList[index];
->   // 这个例子没有使用 React，所以
+> // 这个例子没有使用 React，所以
 >   // 返回一个对象而不是 JSX
 >   return {
->     onNextClick: handleNextClick,
->     onMoreClick: handleMoreClick,
+>    onNextClick: handleNextClick,
+>    onMoreClick: handleMoreClick,
 >     header: `${sculpture.name} by ${sculpture.artist}`,
 >     counter: `${index + 1} of ${sculptureList.length}`,
 >     more: `${showMore ? 'Hide' : 'Show'} details`,
 >     description: showMore ? sculpture.description : null,
 >     imageSrc: sculpture.url,
 >     imageAlt: sculpture.alt
->   };
-> }
-> 
+>    };
+>    }
+>   
 > function updateDOM() {
->   // 在渲染组件之前
->   // 重置当前 Hook 的下标
+> // 在渲染组件之前
+> // 重置当前 Hook 的下标
 >   currentHookIndex = 0;
 >   let output = Gallery();
-> 
+>   
 >   // 更新 DOM 以匹配输出结果
->   // 这部分工作由 React 为你完成
+> // 这部分工作由 React 为你完成
 >   nextButton.onclick = output.onNextClick;
 >   header.textContent = output.header;
 >   moreButton.onclick = output.onMoreClick;
@@ -237,37 +236,37 @@ const [showMore, setShowMore] = useState(false);
 >   image.src = output.imageSrc;
 >   image.alt = output.imageAlt;
 >   if (output.description !== null) {
->     description.textContent = output.description;
->     description.style.display = '';
->   } else {
+>    description.textContent = output.description;
+>    description.style.display = '';
+>    } else {
 >     description.style.display = 'none';
 >   }
-> }
-> 
+>    }
+>   
 > let nextButton = document.getElementById('nextButton');
 > let header = document.getElementById('header');
 > let moreButton = document.getElementById('moreButton');
 > let description = document.getElementById('description');
 > let image = document.getElementById('image');
 > let sculptureList = [{
->   name: 'Homenaje a la Neurocirugía',
->   artist: 'Marta Colvin Andrade',
+> name: 'Homenaje a la Neurocirugía',
+> artist: 'Marta Colvin Andrade',
 >   description: 'Although Colvin is predominantly known for abstract themes that allude to pre-Hispanic symbols, this gigantic sculpture, an homage to neurosurgery, is one of her most recognizable public art pieces.',
 >   url: 'https://i.imgur.com/Mx7dA2Y.jpg',
 >   alt: 'A bronze statue of two crossed hands delicately holding a human brain in their fingertips.'  
-> }, {
+>   }, {
 >   name: 'Floralis Genérica',
->   artist: 'Eduardo Catalano',
+> artist: 'Eduardo Catalano',
 >   description: 'This enormous (75 ft. or 23m) silver flower is located in Buenos Aires. It is designed to move, closing its petals in the evening or when strong winds blow and opening them in the morning.',
 >   url: 'https://i.imgur.com/ZF6s192m.jpg',
 >   alt: 'A gigantic metallic flower sculpture with reflective mirror-like petals and strong stamens.'
-> }];
-> 
+>   }];
+>   
 > // 使 UI 匹配当前 state
 > updateDOM();
 > 
 > ```
->
+> 
 > 你不必理解它就可以使用 React，但你可能会发现这是一个有用的心智模型。
 
 ## State 是隔离且私有的 
