@@ -112,3 +112,4 @@ const fetchStatisGraph = async (data) => {
 }
 ```
 
+![image-20230626113221982](https://s2.loli.net/2023/06/26/ziABxusGTaVgRrw.png)
