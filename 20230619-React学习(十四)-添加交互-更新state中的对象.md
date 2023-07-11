@@ -9,7 +9,7 @@ State 可以保存任何类型的 JavaScript 值，包括对象。但是你不�
 > - 什么是不变性，以及如何不打破它
 > - 如何使用 Immer 减少对象复制的重复性
 
-## What’s a mutation? 什么是突变？
+## 什么是 mutation? 
 
 You can store any kind of JavaScript value in state.
 您可以在状态中存储任何类型的 JavaScript 值。
@@ -288,7 +288,7 @@ let obj3 = {
 
 > [immerjs/use-immer: Use immer to drive state with a React hooks (github.com)](https://github.com/immerjs/use-immer)
 
-如果状态嵌套较深，则可能需要考虑将其平展。但是，如果您不想更改状态结构，则可能更喜欢嵌套跨页的快捷方式。Immer 是一个流行的库，它允许您使用方便但不断变化的语法进行编写，并负责为您生成副本。使用 Immer，您编写的代码看起来像是在“违反规则”并改变对象：
+如果你的 state 有多层的嵌套，你或许应该考虑 [将其扁平化](https://zh-hans.react.dev/learn/choosing-the-state-structure#avoid-deeply-nested-state)。但是，如果你不想改变 state 的数据结构，你可能更喜欢用一种更便捷的方式来实现嵌套展开的效果。[Immer](https://github.com/immerjs/use-immer) 是一个非常流行的库，它可以让你使用简便但可以直接修改的语法编写代码，并会帮你处理好复制的过程。通过使用 Immer，你写出的代码看起来就像是你“打破了规则”而直接修改了对象：
 
 ```js
 import { useImmer } from "use-immer";
@@ -305,6 +305,29 @@ updatePerson(draft => {
 
 但与常规突变不同的是，它不会覆盖过去的状态！
 
-### Immer如何工作?
+### Immer是如何运行的?
 
-Immer 提供的 `draft` 是一种特殊类型的对象，称为代理，它“记录”你用它做什么。这就是为什么您可以随心所欲地自由变异它的原因！在引擎盖下，Immer 会找出 `draft` 的哪些部分已更改，并生成一个包含您的编辑的全新对象。
+由 Immer 提供的 `draft` 是一种特殊类型的对象，被称为 [Proxy](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Proxy)，它会记录你用它所进行的操作。这就是你能够随心所欲地直接修改对象的原因所在！从原理上说，Immer 会弄清楚 `draft` 对象的哪些部分被改变了，并会依照你的修改创建出一个全新的对象。
+
+## 深入探讨：为什么在 React 中不推荐直接修改 state？
+
+有以下几个原因：
+
+- **调试**：如果你使用 `console.log` 并且不直接修改 state，你之前日志中的 state 的值就不会被新的 state 变化所影响。这样你就可以清楚地看到两次渲染之间 state 的值发生了什么变化
+- **优化**：React 常见的 [优化策略](https://zh-hans.react.dev/reference/react/memo) 依赖于如果之前的 props 或者 state 的值和下一次相同就跳过渲染。如果你从未直接修改 state ，那么你就可以很快看到 state 是否发生了变化。如果 `prevObj === obj`，那么你就可以肯定这个对象内部并没有发生改变。
+- **新功能**：我们正在构建的 React 的新功能依赖于 state 被 [像快照一样看待](https://zh-hans.react.dev/learn/state-as-a-snapshot) 的理念。如果你直接修改 state 的历史版本，可能会影响你使用这些新功能。
+- **需求变更**：有些应用功能在不出现任何修改的情况下会更容易实现，比如实现撤销/恢复、展示修改历史，或是允许用户把表单重置成某个之前的值。这是因为你可以把 state 之前的拷贝保存到内存中，并适时对其进行再次使用。如果一开始就用了直接修改 state 的方式，那么后面要实现这样的功能就会变得非常困难。
+- **更简单的实现**：React 并不依赖于 mutation ，所以你不需要对对象进行任何特殊操作。它不需要像很多“响应式”的解决方案一样去劫持对象的属性、总是用代理把对象包裹起来，或者在初始化时做其他工作。这也是为什么 React 允许你把任何对象存放在 state 中——不管对象有多大——而不会造成有任何额外的性能或正确性问题的原因。
+
+在实践中，你经常可以“侥幸”直接修改 state 而不出现什么问题，但是我们强烈建议你不要这样做，这样你就可以使用我们秉承着这种理念开发的 React 新功能。未来的贡献者甚至是你未来的自己都会感谢你的！
+
+## 摘要
+
+- 将 React 中所有的 state 都视为不可直接修改的。
+
+- 当你在 state 中存放对象时，直接修改对象并不会触发重渲染，并会改变前一次渲染“快照”中 state 的值。
+- 不要直接修改一个对象，而要为它创建一个 **新** 版本，并通过把 state 设置成这个新版本来触发重新渲染。
+- 你可以使用这样的 `{...obj, something: 'newValue'}` 对象展开语法来创建对象的拷贝。
+- 对象的展开语法是浅层的：它的复制深度只有一层。
+- 想要更新嵌套对象，你需要从你更新的位置开始自底向上为每一层都创建新的拷贝。
+- 想要减少重复的拷贝代码，可以使用 Immer。
