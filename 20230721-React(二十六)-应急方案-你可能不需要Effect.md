@@ -288,3 +288,537 @@ function ProductPage({ product, addToCart }) {
 ```
 
 这既移除了不必要的 Effect，又修复了问题。
+
+### 发送 POST 请求 
+
+这个 `Form` 组件会发送两种 POST 请求。它在页面加载之际会发送一个分析请求。当你填写表格并点击提交按钮时，它会向 `/api/register` 接口发送一个 POST 请求：
+
+```js
+function Form() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+
+  // ✅ 非常好：这个逻辑应该在组件显示时执行
+  useEffect(() => {
+    post('/analytics/event', { eventName: 'visit_form' });
+  }, []);
+
+  // 🔴 避免：在 Effect 中处理属于事件特定的逻辑
+  const [jsonToSubmit, setJsonToSubmit] = useState(null);
+  useEffect(() => {
+    if (jsonToSubmit !== null) {
+      post('/api/register', jsonToSubmit);
+    }
+  }, [jsonToSubmit]);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setJsonToSubmit({ firstName, lastName });
+  }
+  // ...
+}
+```
+
+让我们应用与之前示例相同的准则。
+
+分析请求应该保留在 Effect 中。这是 **因为** 发送分析请求是表单显示时就需要执行的（在开发环境中它会发送两次，请 [参考这里](https://zh-hans.react.dev/learn/synchronizing-with-effects#sending-analytics) 了解如何处理）。
+
+然而，发送到 `/api/register` 的 POST 请求并不是由表单 **显示** 时引起的。你只想在一个特定的时间点发送请求：当用户按下按钮时。它应该只在这个 **特定的交互** 中发生。删除第二个 Effect，将该 POST 请求移入事件处理函数中：
+
+```js
+function Form() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+
+  // ✅ 非常好：这个逻辑应该在组件显示时执行
+  useEffect(() => {
+    post('/analytics/event', { eventName: 'visit_form' });
+  }, []);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    // ✅ 非常好：事件特定的逻辑在事件处理函数中处理
+    post('/api/register', { firstName, lastName });
+  }
+  // ...
+}
+```
+
+当你决定将某些逻辑放入事件处理函数还是 Effect 中时，你需要回答的主要问题是：从用户的角度来看它是 **怎样的逻辑**。如果这个逻辑是由某个特定的交互引起的，请将它保留在相应的事件处理函数中。如果是由用户在屏幕上 **看到** 组件时引起的，请将它保留在 Effect 中。
+
+### 链式计算 
+
+有时候你可能想链接多个 Effect，每个 Effect 都基于某些 state 来调整其他的 state：
+
+```js
+function Game() {
+  const [card, setCard] = useState(null);
+  const [goldCardCount, setGoldCardCount] = useState(0);
+  const [round, setRound] = useState(1);
+  const [isGameOver, setIsGameOver] = useState(false);
+
+  // 🔴 避免：链接多个 Effect 仅仅为了相互触发调整 state
+  useEffect(() => {
+    if (card !== null && card.gold) {
+      setGoldCardCount(c => c + 1);
+    }
+  }, [card]);
+
+  useEffect(() => {
+    if (goldCardCount > 3) {
+      setRound(r => r + 1)
+      setGoldCardCount(0);
+    }
+  }, [goldCardCount]);
+
+  useEffect(() => {
+    if (round > 5) {
+      setIsGameOver(true);
+    }
+  }, [round]);
+
+  useEffect(() => {
+    alert('游戏结束！');
+  }, [isGameOver]);
+
+  function handlePlaceCard(nextCard) {
+    if (isGameOver) {
+      throw Error('游戏已经结束了。');
+    } else {
+      setCard(nextCard);
+    }
+  }
+
+  // ...
+```
+
+这段代码里有两个问题。
+
+一个问题是它非常低效：在链式的每个 `set` 调用之间，组件（及其子组件）都不得不重新渲染。在上面的例子中，在最坏的情况下（`setCard` → 渲染 → `setGoldCardCount` → 渲染 → `setRound` → 渲染 → `setIsGameOver` → 渲染）有三次不必要的重新渲染。
+
+即使不考虑渲染效率问题，随着代码不断扩展，你会遇到这条 “链式” 调用不符合新需求的情况。试想一下，你现在需要添加一种方法来回溯游戏的历史记录，可以通过更新每个 state 变量到之前的值来实现。然而，将 `card` 设置为之前的的某个值会再次触发 Effect 链并更改你正在显示的数据。这样的代码往往是僵硬而脆弱的。
+
+在这个例子中，更好的做法是：尽可能在渲染期间进行计算，以及在事件处理函数中调整 state：
+
+```js
+function Game() {
+  const [card, setCard] = useState(null);
+  const [goldCardCount, setGoldCardCount] = useState(0);
+  const [round, setRound] = useState(1);
+
+  // ✅ 尽可能在渲染期间进行计算
+  const isGameOver = round > 5;
+
+  function handlePlaceCard(nextCard) {
+    if (isGameOver) {
+      throw Error('游戏已经结束了。');
+    }
+
+    // ✅ 在事件处理函数中计算剩下的所有 state
+    setCard(nextCard);
+    if (nextCard.gold) {
+      if (goldCardCount <= 3) {
+        setGoldCardCount(goldCardCount + 1);
+      } else {
+        setGoldCardCount(0);
+        setRound(round + 1);
+        if (round === 5) {
+          alert('游戏结束！');
+        }
+      }
+    }
+  }
+
+  // ...
+```
+
+这高效得多。此外，如果你实现了一个回溯游戏历史的方法，现在你可以将每个 state 变量设置为之前的任何的一个值，而不会触发每个调整其他值的 Effect 链。如果你需要在多个事件处理函数之间复用逻辑，可以 [提取成一个函数](https://zh-hans.react.dev/learn/you-might-not-need-an-effect#sharing-logic-between-event-handlers) 并在这些事件处理函数中调用它。
+
+请记住，在事件处理函数内部，[state 的行为类似快照](https://zh-hans.react.dev/learn/state-as-a-snapshot)。例如，即使你调用了 `setRound(round + 1)`，`round` 变量仍然是用户点击按钮时的值。如果你需要使用下一个值进行计算，则需要像这样手动定义它：`const nextRound = round + 1`。
+
+在某些情况下，你 **无法** 在事件处理函数中直接计算出下一个 state。例如，试想一个具有多个下拉菜单的表单，如果下一个下拉菜单的选项取决于前一个下拉菜单选择的值。这时，Effect 链是合适的，因为你需要与网络进行同步。
+
+### 初始化应用 
+
+有些逻辑只需要在应用加载时执行一次。
+
+你可能想把它放在一个顶层组件的 Effect 中：
+
+```js
+function App() {
+  // 🔴 避免：把只需要执行一次的逻辑放在 Effect 中
+  useEffect(() => {
+    loadDataFromLocalStorage();
+    checkAuthToken();
+  }, []);
+  // ...
+}
+```
+
+然后，你很快就会发现它在 [开发环境会执行两次](https://zh-hans.react.dev/learn/synchronizing-with-effects#how-to-handle-the-effect-firing-twice-in-development)。这会导致一些问题——例如，它可能使身份验证 token 无效，因为该函数不是为被调用两次而设计的。一般来说，当组件重新挂载时应该具有一致性。包括你的顶层 `App` 组件。
+
+尽管在实际的生产环境中它可能永远不会被重新挂载，但在所有组件中遵循相同的约束条件可以更容易地移动和复用代码。如果某些逻辑必须在 **每次应用加载时执行一次**，而不是在 **每次组件挂载时执行一次**，可以添加一个顶层变量来记录它是否已经执行过了：
+
+```js
+let didInit = false;
+
+function App() {
+  useEffect(() => {
+    if (!didInit) {
+      didInit = true;
+      // ✅ 只在每次应用加载时执行一次
+      loadDataFromLocalStorage();
+      checkAuthToken();
+    }
+  }, []);
+  // ...
+}
+```
+
+你也可以在模块初始化和应用渲染之前执行它：
+
+```js
+if (typeof window !== 'undefined') { // 检测我们是否在浏览器环境
+   // ✅ 只在每次应用加载时执行一次
+  checkAuthToken();
+  loadDataFromLocalStorage();
+}
+
+function App() {
+  // ...
+}
+```
+
+顶层代码会在组件被导入时执行一次——即使它最终并没有被渲染。为了避免在导入任意组件时降低性能或产生意外行为，请不要过度使用这种方法。将应用级别的初始化逻辑保留在像 `App.js` 这样的根组件模块或你的应用入口中。
+
+### 通知父组件有关 state 变化的信息 
+
+假设你正在编写一个有具有内部 state `isOn` 的 `Toggle` 组件，该 state 可以是 `true` 或 `false`。有几种不同的方式来进行切换（通过点击或拖动）。你希望在 `Toggle` 的 state 变化时通知父组件，因此你暴露了一个 `onChange` 事件并在 `Effect` 中调用它：
+
+```js
+function Toggle({ onChange }) {
+  const [isOn, setIsOn] = useState(false);
+
+  // 🔴 避免：onChange 处理函数执行的时间太晚了
+  useEffect(() => {
+    onChange(isOn);
+  }, [isOn, onChange])
+
+  function handleClick() {
+    setIsOn(!isOn);
+  }
+
+  function handleDragEnd(e) {
+    if (isCloserToRightEdge(e)) {
+      setIsOn(true);
+    } else {
+      setIsOn(false);
+    }
+  }
+
+  // ...
+}
+```
+
+和之前一样，这不太理想。`Toggle` 首先更新它的 state，然后 React 会更新屏幕。然后 React 执行 Effect 中的代码，调用从父组件传入的 `onChange` 函数。现在父组件开始更新它自己的 state，开启另一个渲染流程。更好的方式是在单个流程中完成所有操作。
+
+删除 Effect，并在同一个事件处理函数中更新 **两个** 组件的 state：
+
+```js
+function Toggle({ onChange }) {
+  const [isOn, setIsOn] = useState(false);
+
+  function updateToggle(nextIsOn) {
+    // ✅ 非常好：在触发它们的事件中执行所有更新
+    setIsOn(nextIsOn);
+    onChange(nextIsOn);
+  }
+
+  function handleClick() {
+    updateToggle(!isOn);
+  }
+
+  function handleDragEnd(e) {
+    if (isCloserToRightEdge(e)) {
+      updateToggle(true);
+    } else {
+      updateToggle(false);
+    }
+  }
+
+  // ...
+}
+```
+
+通过这种方式，`Toggle` 组件及其父组件都在事件处理期间更新了各自的 state。React 会 [批量](https://zh-hans.react.dev/learn/queueing-a-series-of-state-updates) 处理来自不同组件的更新，所以只会有一个渲染流程。
+
+你也可以完全移除该 state，并从父组件中接收 `isOn`：
+
+```js
+// ✅ 也很好：该组件完全由它的父组件控制
+function Toggle({ isOn, onChange }) {
+  function handleClick() {
+    onChange(!isOn);
+  }
+
+  function handleDragEnd(e) {
+    if (isCloserToRightEdge(e)) {
+      onChange(true);
+    } else {
+      onChange(false);
+    }
+  }
+
+  // ...
+}
+```
+
+“[状态提升](https://zh-hans.react.dev/learn/sharing-state-between-components)” 允许父组件通过切换自身的 state 来完全控制 `Toggle` 组件。这意味着父组件会包含更多的逻辑，但整体上需要关心的状态变少了。每当你尝试保持两个不同的 state 变量之间的同步时，试试状态提升！
+
+### 将数据传递给父组件 
+
+`Child` 组件获取了一些数据并在 Effect 中传递给 `Parent` 组件：
+
+```js
+function Parent() {
+  const [data, setData] = useState(null);
+  // ...
+  return <Child onFetched={setData} />;
+}
+
+function Child({ onFetched }) {
+  const data = useSomeAPI();
+  // 🔴 避免：在 Effect 中传递数据给父组件
+  useEffect(() => {
+    if (data) {
+      onFetched(data);
+    }
+  }, [onFetched, data]);
+  // ...
+}
+```
+
+在 React 中，数据从父组件流向子组件。当你在屏幕上看到了一些错误时，你可以通过一路追踪组件树来寻找错误信息是从哪个组件传递下来的，从而找到传递了错误的 prop 或具有错误的 state 的组件。当子组件在 Effect 中更新其父组件的 state 时，数据流变得非常难以追踪。既然子组件和父组件都需要相同的数据，那么可以让父组件获取那些数据，并将其 **向下传递** 给子组件：
+
+```js
+function Parent() {
+  const data = useSomeAPI();
+  // ...
+  // ✅ 非常好：向子组件传递数据
+  return <Child data={data} />;
+}
+
+function Child({ data }) {
+  // ...
+}
+```
+
+这更简单，并且可以保持数据流的可预测性：数据从父组件流向子组件。
+
+### 订阅外部 store 
+
+有时候，你的组件可能需要订阅 React state 之外的一些数据。这些数据可能来自第三方库或内置浏览器 API。由于这些数据可能在 React 无法感知的情况下发变化，你需要在你的组件中手动订阅它们。这经常使用 Effect 来实现，例如：
+
+```js
+function useOnlineStatus() {
+  // 不理想：在 Effect 中手动订阅 store
+  const [isOnline, setIsOnline] = useState(true);
+  useEffect(() => {
+    function updateState() {
+      setIsOnline(navigator.onLine);
+    }
+
+    updateState();
+
+    window.addEventListener('online', updateState);
+    window.addEventListener('offline', updateState);
+    return () => {
+      window.removeEventListener('online', updateState);
+      window.removeEventListener('offline', updateState);
+    };
+  }, []);
+  return isOnline;
+}
+
+function ChatIndicator() {
+  const isOnline = useOnlineStatus();
+  // ...
+}
+```
+
+这个组件订阅了一个外部的 store 数据（在这里，是浏览器的 `navigator.onLine` API）。由于这个 API 在服务端不存在（因此不能用于初始的 HTML），因此 state 最初被设置为 `true`。每当浏览器 store 中的值发生变化时，组件都会更新它的 state。
+
+尽管通常可以使用 Effect 来实现此功能，但 React 为此针对性地提供了一个 Hook 用于订阅外部 store。删除 Effect 并将其替换为调用 [`useSyncExternalStore`](https://zh-hans.react.dev/reference/react/useSyncExternalStore)：
+
+```js
+function subscribe(callback) {
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
+  return () => {
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
+}
+
+function useOnlineStatus() {
+  // ✅ 非常好：用内置的 Hook 订阅外部 store
+  return useSyncExternalStore(
+    subscribe, // 只要传递的是同一个函数，React 不会重新订阅
+    () => navigator.onLine, // 如何在客户端获取值
+    () => true // 如何在服务端获取值
+  );
+}
+
+function ChatIndicator() {
+  const isOnline = useOnlineStatus();
+  // ...
+}
+```
+
+与手动使用 Effect 将可变数据同步到 React state 相比，这种方法能减少错误。通常，你可以写一个像上面的 `useOnlineStatus()` 这样的自定义 Hook，这样你就不需要在各个组件中重复写这些代码。[阅读更多关于在 React 组件中订阅外部数据 store 的信息](https://zh-hans.react.dev/reference/react/useSyncExternalStore)。
+
+### 获取数据 
+
+许多应用使用 Effect 来发起数据获取请求。像这样在 Effect 中写一个数据获取请求是相当常见的：
+
+```js
+function SearchResults({ query }) {
+  const [results, setResults] = useState([]);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    // 🔴 避免：没有清除逻辑的获取数据
+    fetchResults(query, page).then(json => {
+      setResults(json);
+    });
+  }, [query, page]);
+
+  function handleNextPageClick() {
+    setPage(page + 1);
+  }
+  // ...
+}
+```
+
+你 **不需要** 把这个数据获取逻辑迁移到一个事件处理函数中。
+
+这可能看起来与之前需要将逻辑放入事件处理函数中的示例相矛盾！但是，考虑到这并不是 **键入事件**，这是在这里获取数据的主要原因。搜索输入框的值经常从 URL 中预填充，用户可以在不关心输入框的情况下导航到后退和前进页面。
+
+`page` 和 `query` 的来源其实并不重要。只要该组件可见，你就需要通过当前 `page` 和 `query` 的值，保持 `results` 和网络数据的 [同步](https://zh-hans.react.dev/learn/synchronizing-with-effects)。这就是为什么这里是一个 Effect 的原因。
+
+然而，上面的代码有一个问题。假设你快速地输入 `“hello”`。那么 `query` 会从 `“h”` 变成 `“he”`，`“hel”`，`“hell”` 最后是 `“hello”`。这会触发一连串不同的数据获取请求，但无法保证对应的返回顺序。例如，`“hell”` 的响应可能在 `“hello”` 的响应 **之后** 返回。由于它的 `setResults()` 是在最后被调用的，你将会显示错误的搜索结果。这种情况被称为 “[竞态条件](https://en.wikipedia.org/wiki/Race_condition)”：两个不同的请求 “相互竞争”，并以与你预期不符的顺序返回。
+
+**为了修复这个问题，你需要添加一个 [清理函数](https://zh-hans.react.dev/learn/synchronizing-with-effects#fetching-data) 来忽略较早的返回结果：**
+
+```js
+function SearchResults({ query }) {
+  const [results, setResults] = useState([]);
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    let ignore = false;
+    fetchResults(query, page).then(json => {
+      if (!ignore) {
+        setResults(json);
+      }
+    });
+    return () => {
+      ignore = true; //请求时会设置为true
+    };
+  }, [query, page]);
+
+  function handleNextPageClick() {
+    setPage(page + 1);
+  }
+  // ...
+}
+```
+
+这确保了当你在 Effect 中获取数据时，除了最后一次请求的所有返回结果都将被忽略。
+
+处理竞态条件并不是实现数据获取的唯一难点。你可能还需要考虑缓存响应结果（使用户点击后退按钮时可以立即看到先前的屏幕内容），如何在服务端获取数据（使服务端初始渲染的 HTML 中包含获取到的内容而不是加载动画），以及如何避免网络瀑布（使子组件不必等待每个父组件的数据获取完毕后才开始获取数据）。
+
+**这些问题适用于任何 UI 库，而不仅仅是 React。解决这些问题并不容易，这也是为什么现代 [框架](https://zh-hans.react.dev/learn/start-a-new-react-project#production-grade-react-frameworks) 提供了比在 Effect 中获取数据更有效的内置数据获取机制的原因。**
+
+如果你不使用框架（也不想开发自己的框架），但希望使从 Effect 中获取数据更符合人类直觉，请考虑像这个例子一样，将获取逻辑提取到一个自定义 Hook 中：
+
+```js
+function SearchResults({ query }) {
+  const [page, setPage] = useState(1);
+  const params = new URLSearchParams({ query, page });
+  const results = useData(`/api/search?${params}`);
+
+  function handleNextPageClick() {
+    setPage(page + 1);
+  }
+  // ...
+}
+
+function useData(url) {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    let ignore = false;
+    fetch(url)
+      .then(response => response.json())
+      .then(json => {
+        if (!ignore) {
+          setData(json);
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [url]);
+  return data;
+}
+```
+
+你可能还想添加一些错误处理逻辑以及跟踪内容是否处于加载中。你可以自己编写这样的 Hook，也可以使用 React 生态中已经存在的许多解决方案。**虽然仅仅使用自定义 Hook 不如使用框架内置的数据获取机制高效，但将数据获取逻辑移动到自定义 Hook 中将使后续采用高效的数据获取策略更加容易。**
+
+一般来说，当你不得不编写 Effect 时，请留意是否可以将某段功能提取到专门的内置 API 或一个更具声明性的自定义 Hook 中，比如上面的 `useData`。你会发现组件中的原始 `useEffect` 调用越少，维护应用将变得更加容易。
+
+## 摘要
+
+- 如果你可以在渲染期间计算某些内容，则不需要使用 Effect。
+- 想要缓存昂贵的计算，请使用 `useMemo` 而不是 `useEffect`。
+- 想要重置整个组件树的 state，请传入不同的 `key`。
+- 想要在 prop 变化时重置某些特定的 state，请在渲染期间处理。
+- 组件 **显示** 时就需要执行的代码应该放在 Effect 中，否则应该放在事件处理函数中。
+- 如果你需要更新多个组件的 state，最好在单个事件处理函数中处理。
+- 当你尝试在不同组件中同步 state 变量时，请考虑状态提升。
+- 你可以使用 Effect 获取数据，但你需要实现清除逻辑以避免竞态条件。
+
+## 尝试一些挑战
+
+### 不用Effect转换数据
+
+下面的 `TodoList` 显示了一个待办事项列表。当 “只显示未完成的事项” 复选框被勾选时，已完成的待办事项不会显示在列表中。无论哪些待办事项可见，页脚始终显示尚未完成的待办事项数量。
+
+通过移除不必要的 state 和 Effect 来简化这个组件。
+
+<iframe src="https://codesandbox.io/embed/naughty-grass-8p7g2d?fontsize=14&hidenavigation=1&module=%2FApp.js&theme=dark"
+     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="naughty-grass-8p7g2d"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
+
+#### 提示
+
+如果你可以在渲染期间计算出某些值，那么就不需要使用 state 或 Effect 来更新它。
+
+#### 答案
+
+这个例子中只有两个必要的 state 变量：`todos` 列表和代表复选框是否勾选的 `showActive`。其他所有的 state 变量都是 [多余的](https://zh-hans.react.dev/learn/choosing-the-state-structure#avoid-redundant-state)，可以在渲染期间计算得出。包括 `footer`，可以直接移到包含它的 JSX 中。
+
+你的最终答案应该是这样：
+
+<iframe src="https://codesandbox.io/embed/serene-mahavira-jzphgp?fontsize=14&hidenavigation=1&module=%2FApp.js&theme=dark"
+     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="serene-mahavira-jzphgp"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
+
+### 更多挑战
+
+> [你可能不需要 Effect – React-挑战](https://zh-hans.react.dev/learn/you-might-not-need-an-effect#challenges)
