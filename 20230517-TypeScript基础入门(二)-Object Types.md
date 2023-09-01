@@ -215,19 +215,74 @@ let mySquare = createSquare(squareOptions);
 
 ### `readonly`
 
-将所有属性设置为只读属性，即不能修改。
+将所有属性设置为**只读**属性，即不能修改。
+
+`readonly` 修饰符用于创建只读属性，即该属性只能在对象创建时被赋值，之后不能再被修改。例如：
+
+```ts
+interface Person {
+  name: string;
+  age: number;
+}
+
+type ReadonlyPerson = Readonly<Person>;
+
+const person: ReadonlyPerson = { name: 'Alice', age: 30 };
+
+// 下面的代码会报错，因为 name 属性是只读的
+person.name = 'Bob';
+```
+
+在这个示例中，我们使用 `Readonly` 映射类型将 `Person` 接口转换为只读类型 `ReadonlyPerson`。然后，我们创建了一个只读的 `person` 对象，它的 `name` 和 `age` 属性都是只读的。当我们尝试修改 `person` 对象的 `name` 属性时，会得到一个编译错误，因为 `name` 属性是只读的。
 
 ### `partial`
 
-将所有属性设置为可选属性，即可以不传入该属性。
+将所有属性设置为**可选**属性，即可以不传入该属性。
+
+`partial` 修饰符用于创建可选属性，即该属性可以存在也可以不存在。例如：
+
+```ts
+interface Person {
+  name: string;
+  age: number;
+}
+
+type PartialPerson = Partial<Person>;
+
+const person: PartialPerson = { name: 'Alice' };
+
+// 下面的代码不会报错，因为 age 属性是可选的
+person.age = 30;
+```
+
+在这个示例中，我们使用 `Partial` 映射类型将 `Person` 接口转换为可选类型 `PartialPerson`。然后，我们创建了一个可选的 `person` 对象，它的 `name` 属性是必选的，而 `age` 属性是可选的。当我们尝试给 `person` 对象的 `age` 属性赋值时，不会得到编译错误，因为 `age` 属性是可选的。
 
 ### `required`
 
-将所有属性设置为必填属性，即必须传入该属性。
+将所有属性设置为**必填**属性，即必须传入该属性。
+
+`required` 修饰符用于创建必选属性，即该属性必须存在。例如：
+
+```ts
+interface Person {
+  name?: string;
+  age?: number;
+}
+
+type RequiredPerson = Required<Person>;
+
+const person: RequiredPerson = { name: 'Alice', age: 30 };
+
+// 下面的代码不会报错，因为 name 和 age 属性都是必选的
+person.name = 'Bob';
+person.age = 40;
+```
+
+在这个示例中，我们使用 `Required` 映射类型将 `Person` 接口转换为必选类型 `RequiredPerson`。然后，我们创建了一个必选的 `person` 对象，它的 `name` 和 `age` 属性都是必选的。当我们尝试给 `person` 对象的 `name` 和 `age` 属性赋值时，不会得到编译错误，因为它们都是必选的。
 
 ### `Pick`
 
-从一个类型中选取部分属性，创建一个新的类型。
+从一个类型中选取部分属性，**创建一个新的类型**。
 
 例如，下面是一个使用 `readonly` 和 `partial` Mapping Modifiers 的示例：
 
@@ -367,11 +422,11 @@ draw({ color: "red", raidus: 42 });
 // Object literal may only specify known properties, but 'raidus' does not exist in type 'Colorful & Circle'. Did you mean to write 'radius'?
 ```
 
-## Interfaces vs. Intersections 接口和联合
+## Interfaces vs. Intersections 接口和交叉类型的区别
 
-我们刚刚研究了两种组合类型的方法，它们相似，但实际上有细微差别。通过接口，我们可以使用 `extends` 子句从其他类型进行扩展，并且我们能够对交集执行类似的操作并使用类型别名命名结果。两者之间的主要区别在于冲突的处理方式，这种差异通常是您在接口和交集类型的类型别名之间选择一个而不是另一个的主要原因之一。
+我们刚刚研究了两种组合类型的方法，它们相似，但实际上有细微差别。通过接口，我们可以使用 `extends` 子句从其他类型进行扩展，并且我们能够对交集执行类似的操作并使用类型别名命名结果。两者之间的主要区别在于冲突的处理方式，这种差异通常是您在接口和交叉类型的类型别名之间选择一个而不是另一个的主要原因之一。
 
-## Generic Object Types 通用对象类型
+## Generic Object Types 泛型
 
 让我们想象一个可以包含任何值的 `Box` 类型 - `string` s、 `number` s、 `Giraffe` s 等等。
 
