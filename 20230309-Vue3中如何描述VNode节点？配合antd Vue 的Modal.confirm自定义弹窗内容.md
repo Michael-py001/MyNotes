@@ -140,3 +140,42 @@ content:".... \n注：设为审核员的成员，姓名及手机号码会在下�
 效果如下：
 
 ![image-20230426135750886](https://s2.loli.net/2023/04/26/mRLfU496TxEaigS.png)
+
+## 简版写法
+
+```js
+import { h, createVNode } from 'vue'
+import { message as AMessage, Modal as AModal } from 'ant-design-vue'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
+
+AModal.confirm({
+            title: '删除提醒',
+            content: () => {
+                return h('div', {}, [
+                    h('p', {}, [
+                        '角色名称：',
+                        h(
+                            'span',
+                            {
+                                style: { color: '#02A7F0' },
+                            },
+                            [item.templateRoleName],
+                        ),
+                    ]),
+                    h('div', {}, ['删除不影响已有机构的角色；']),
+                    h('div', {}, ['如果该地区尚未开设机构，新开设的机构将使用通用模版中的角色。']),
+                ])
+            },
+            icon: createVNode(ExclamationCircleOutlined),
+            okText: '立即删除',
+            cancelText: '暂不删除',
+            onOk() {
+                return new Promise((resolve, reject) => {
+                    const res = deleteRole(item, resolve, reject)
+                    return res
+                })
+            },
+            onCancel() {},
+        })
+```
+
