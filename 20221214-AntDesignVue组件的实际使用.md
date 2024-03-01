@@ -181,6 +181,43 @@ function handleClearValidate(name) {
 
 ![image-20221216140226715](https://f.pz.al/pzal/2022/12/16/3f70962044cbf.png)
 
+### 使用响应式的require
+
+在require中传入一个computed即可随时切换校验条件
+
+```js
+ {
+                el: 'a-select',
+                label: '评标方法',
+                name: 'evaluateMethod',
+                colspan: 8,
+                options: evaluateMethod,
+                event:{
+                    change:(val)=>{
+                        if(val !== '03'){
+                            formData.value.evaluateMethodDesc = ''
+                        }
+                    }
+                },
+                rules: [{ required: true, message: '请选择评标方法' }],
+            },
+            {
+                el: 'input',
+                label: '评标方法说明',
+                name: 'evaluateMethodDesc',
+                colspan: 16,
+                props:{
+                    disabled:computed(()=>formData.value.evaluateMethod !== '03')
+                },
+                rules: [{ required: computed(()=>formData.value.evaluateMethod === '03'), message: '请输入评标方法说明' },{
+                    max: 20,
+                    message: '最多输入20个字符'
+                }],
+            },
+```
+
+
+
 ## 单独检验其中的某一项
 
 ```js
