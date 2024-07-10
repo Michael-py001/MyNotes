@@ -182,4 +182,50 @@ combineRow(tableData.value,'level2Name')
 combineRow(tableData.value,'level3Name')
 ```
 
-可以优化成多个合并字段遍历处理
+此方法为提前计算好合并单元格的数量：
+
+![image-20240527114043605](https://s2.loli.net/2024/05/27/JPYzwQKTufslcyI.png)
+
+### 优化版
+
+此方法为在column中计算时才进行判断合并，减少一层循环，可读性更高，更简单。
+
+```js
+{
+  title: '一级分类',
+    dataIndex: 'level0Name',
+      customRender: ({ text, record, index }) => {
+        return {
+          children: `${text ? text : '/'}`,
+          props: {
+            rowSpan: combineRowPro(text, 'level0Name', tableData.value, index),
+          },
+        }
+      },
+},
+```
+
+核心：
+
+- 如果当前行和上一行的值相同，则合并单元格为0
+- 如果当前行和下一行的值相同，则合并单元格+1，否则中断
+
+```js
+function combineRowPro(text, key, tableData, index) {
+  // 如果当前行和上一行的值相同，则合并单元格为0
+  if (index !== 0 && text === tableData[index - 1]?.[key]) {
+    return 0
+  }
+  let rowSpan = 1
+  // 如果当前行和下一行的值相同，则合并单元格+1，否则中断
+  for (let i = index + 1; i < tableData.length; i++) {
+    if (text === tableData[i][key]) {
+      rowSpan++
+    } else {
+      break
+    }
+  }
+  return rowSpan
+}
+```
+
