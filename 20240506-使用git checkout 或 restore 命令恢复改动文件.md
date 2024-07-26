@@ -24,3 +24,45 @@
 git checkout test packages\x-widgets\src\antdv\TimeRangePicker
 ```
 
+## 使用 `git restore` 来替代 `git checkout <branch> <file>` 命令
+
+你可以使用 `git restore` 来替代 `git checkout <branch> <file>` 命令。以下是如何使用 `git restore` 来实现相同的效果：
+
+使用 `git restore` 从指定分支恢复文件
+
+假设你有一个分支 `feature-branch`，并且你想从该分支恢复文件 [`index.vue`](vscode-file://vscode-app/c:/Users/WuShiLi/AppData/Local/Programs/Microsoft VS Code Insiders/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)，你可以使用以下命令：
+
+```bash
+git restore --source feature-branch --staged --worktree index.vue
+```
+
+### 解释
+
+- `--source <branch>`：指定从哪个分支恢复文件。
+- `--staged`：将文件恢复到暂存区。
+- `--worktree`：将文件恢复到工作区。
+
+### 示例
+
+假设你在当前分支上，并且想从 `feature-branch` 分支恢复 `index.vue` 文件：
+
+```bash
+git restore --source feature-branch --staged --worktree index.vue
+```
+
+这将从 `feature-branch` 分支恢复 [`index.vue`](vscode-file://vscode-app/c:/Users/WuShiLi/AppData/Local/Programs/Microsoft VS Code Insiders/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 文件到当前分支的暂存区和工作区。
+
+### 使用 `git switch` 切换分支
+
+如果你只是想切换到另一个分支，可以使用 `git switch` 命令：
+
+```bash
+git switch feature-branch
+```
+
+### 总结
+
+- 使用 `git restore --source <branch> --staged --worktree <file>` 来从指定分支恢复文件。
+- 使用 `git switch <branch>` 来切换分支。
+
+这样，你就可以使用 `git restore` 和 `git switch` 来替代 `git checkout <branch> <file>` 的功能。
