@@ -596,6 +596,732 @@ export class UserController {
 
 ## 常见应用场景和最佳实践
 
+引入使用到的依赖：
+
+```ts
+import { 
+  Injectable, 
+  NestInterceptor, 
+  ExecutionContext, 
+  CallHandler,
+  HttpException,
+  HttpStatus,
+  Logger,
+  CacheInterceptor,
+  HttpAdapterHost
+} from '@nestjs/common';
+import { 
+  Observable, 
+  throwError, 
+  of 
+} from 'rxjs';
+import { 
+  tap, 
+  catchError, 
+  map, 
+  timeout,
+  timeoutWith
+} from 'rxjs/operators';
+import { 
+  Request, 
+  Response 
+} from 'express';
+```
+
+### 日志记录拦截器
+
+这个拦截器可以记录所有请求的详细信息，包括执行时间、请求参数和响应结果。
+
+```ts
+@Injectable()
+export class LoggingInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(LoggingInterceptor.name);
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const request = context.switchToHttp().getRequest<Request>();
+    const { method, url, body, headers } = request;
+    const startTime = Date.now();
+    const requestId = headers['x-request-id'] || this.generateRequestId();
+
+    // 请求开始时记录
+    this.logger.log({
+      message: 'Request started',
+      requestId,
+      method,
+      url,
+      body,
+      timestamp: new Date().toISOString()
+    });
+
+    return next.handle().pipe(
+      tap({
+        next: (response) => {
+          // 请求成功时记录
+          const duration = Date.now() - startTime;
+          this.logger.log({
+            message: 'Request completed successfully',
+            requestId,
+            method,
+            url,
+            duration,
+            response,
+            timestamp: new Date().toISOString()
+          });
+        },
+        error: (error) => {
+          // 请求失败时记录
+          const duration = Date.now() - startTime;
+          this.logger.error({
+            message: 'Request failed',
+            requestId,
+            method,
+            url,
+            duration,
+            error: {
+              message: error.message,
+              stack: error.stack
+            },
+            timestamp: new Date().toISOString()
+          });
+        }
+      })
+    );
+  }
+
+  private generateRequestId(): string {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+}
+```
+
+### 响应转换拦截器
+
+统一处理响应格式，确保 API 返回统一的数据结构。
+
+```ts
+@Injectable()
+export class TransformInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const response = context.switchToHttp().getResponse<Response>();
+    const request = context.switchToHttp().getRequest<Request>();
+
+    return next.handle().pipe(
+      map(data => ({
+        code: response.statusCode,
+        message: 'Success',
+        data,
+        path: request.url,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          userAgent: request.headers['user-agent'],
+          ip: request.ip
+        }
+      })),
+      catchError(error => {
+        return throwError(() => ({
+          code: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          message: error.message || 'Internal server error',
+          path: request.url,
+          timestamp: new Date().toISOString(),
+          errors: error.response?.errors || []
+        }));
+      })
+    );
+  }
+}
+```
+
+### 性能监控拦截器
+
+监控 API 性能和响应时间，可以与监控系统集成。
+
+```ts
+@Injectable()
+export class PerformanceInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(PerformanceInterceptor.name);
+  
+  constructor(
+    private readonly performanceThreshold: number = 1000 // 默认阈值1秒
+  ) {}
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const startTime = process.hrtime();
+    const request = context.switchToHttp().getRequest<Request>();
+
+    return next.handle().pipe(
+      tap(() => {
+        const [seconds, nanoseconds] = process.hrtime(startTime);
+        const duration = seconds * 1000 + nanoseconds / 1000000; // 转换为毫秒
+
+        // 记录性能指标
+        const performanceMetrics = {
+          endpoint: request.url,
+          method: request.method,
+          duration,
+          timestamp: new Date().toISOString(),
+          slow: duration > this.performanceThreshold
+        };
+
+        if (duration > this.performanceThreshold) {
+          this.logger.warn({
+            message: 'Slow API performance detected',
+            ...performanceMetrics
+          });
+        }
+
+        // 这里可以将性能指标发送到监控系统
+        this.sendToMonitoringSystem(performanceMetrics);
+      })
+    );
+  }
+
+  private sendToMonitoringSystem(metrics: any) {
+    // 实现发送指标到监控系统的逻辑
+    // 例如: Prometheus, Grafana, ELK等
+  }
+}
+```
+
+### 高级缓存拦截器
+
+实现一个带有过期时间和自动更新的缓存拦截器。
+
+```ts
+@Injectable()
+export class AdvancedCacheInterceptor implements NestInterceptor {
+  private cache = new Map<string, {
+    data: any;
+    expireAt: number;
+    updating: boolean;
+  }>();
+
+  constructor(
+    private readonly ttl: number = 60000, // 缓存时间，默认1分钟
+    private readonly staleWhileRevalidate: number = 30000 // 后台更新时间，默认30秒
+  ) {}
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const request = context.switchToHttp().getRequest<Request>();
+    const cacheKey = this.generateCacheKey(request);
+
+    // 检查缓存是否存在且有效
+    const cachedData = this.cache.get(cacheKey);
+    const now = Date.now();
+
+    if (cachedData) {
+      // 如果缓存未过期，直接返回
+      if (cachedData.expireAt > now) {
+        return of(cachedData.data);
+      }
+
+      // 如果缓存已过期但在后台更新时间内，返回旧数据并触发更新
+      if (!cachedData.updating && 
+          cachedData.expireAt + this.staleWhileRevalidate > now) {
+        this.updateCacheInBackground(cacheKey, next);
+        return of(cachedData.data);
+      }
+    }
+
+    // 获取新数据并缓存
+    return this.fetchAndCacheData(cacheKey, next);
+  }
+
+  private generateCacheKey(request: Request): string {
+    return `${request.method}:${request.url}:${JSON.stringify(request.query)}`;
+  }
+
+  private fetchAndCacheData(
+    cacheKey: string, 
+    next: CallHandler
+  ): Observable<any> {
+    return next.handle().pipe(
+      tap(data => {
+        this.cache.set(cacheKey, {
+          data,
+          expireAt: Date.now() + this.ttl,
+          updating: false
+        });
+      })
+    );
+  }
+
+  private updateCacheInBackground(
+    cacheKey: string, 
+    next: CallHandler
+  ): void {
+    const cachedData = this.cache.get(cacheKey);
+    if (cachedData) {
+      cachedData.updating = true;
+      this.fetchAndCacheData(cacheKey, next).subscribe();
+    }
+  }
+}
+```
+
+### 最佳实践-1.模块化和可配置性
+
+```ts
+// 创建配置接口
+interface InterceptorConfig {
+  logging?: boolean;
+  performance?: {
+    enabled: boolean;
+    threshold: number;
+  };
+  cache?: {
+    enabled: boolean;
+    ttl: number;
+  };
+}
+
+// 创建可配置的拦截器工厂
+@Injectable()
+export class ConfigurableInterceptorFactory {
+  static create(config: InterceptorConfig): NestInterceptor {
+    return {
+      intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+        const interceptors: NestInterceptor[] = [];
+
+        if (config.logging) {
+          interceptors.push(new LoggingInterceptor());
+        }
+
+        if (config.performance?.enabled) {
+          interceptors.push(
+            new PerformanceInterceptor(config.performance.threshold)
+          );
+        }
+
+        if (config.cache?.enabled) {
+          interceptors.push(
+            new AdvancedCacheInterceptor(config.cache.ttl)
+          );
+        }
+
+        // 串联所有拦截器
+        return interceptors.reduce(
+          (acc, interceptor) => 
+            interceptor.intercept(context, { handle: () => acc }),
+          next.handle()
+        );
+      }
+    };
+  }
+}
+```
+
+### 最佳实践-2.错误处理最佳实践
+
+```ts
+@Injectable()
+export class ErrorHandlingInterceptor implements NestInterceptor {
+  constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    return next.handle().pipe(
+      timeout(5000), // 添加超时处理
+      timeoutWith(5000, throwError(() => new HttpException(
+        'Request timeout',
+        HttpStatus.REQUEST_TIMEOUT
+      ))),
+      catchError(error => {
+        // 统一错误处理逻辑
+        const { httpAdapter } = this.httpAdapterHost;
+        const ctx = context.switchToHttp();
+        const response = ctx.getResponse();
+        const request = ctx.getRequest();
+
+        const errorResponse = {
+          statusCode: error?.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          message: error?.message || 'Internal server error',
+          timestamp: new Date().toISOString(),
+          path: request.url,
+          details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+        };
+
+        httpAdapter.reply(response, errorResponse, errorResponse.statusCode);
+        return throwError(() => error);
+      })
+    );
+  }
+}
+```
+
+#### 全局注册
+
+如果你希望拦截器在整个应用程序中生效，可以在 main.ts 文件中全局注册它：
+
+```ts
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ErrorHandlingInterceptor } from './path/to/interceptor';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // 全局注册拦截器
+  app.useGlobalInterceptors(new ErrorHandlingInterceptor(app.get(HttpAdapterHost)));
+
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+#### 模块级注册
+
+如果你只希望在特定模块中使用拦截器，可以在模块的 providers 数组中注册它：
+
+```ts
+import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ErrorHandlingInterceptor } from './path/to/interceptor';
+
+@Module({
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ErrorHandlingInterceptor,
+    },
+  ],
+})
+export class SomeModule {}
+```
+
+#### 控制器级注册
+
+如果你只希望在特定控制器中使用拦截器，可以在控制器的装饰器中使用 @UseInterceptors：
+
+```ts
+import { Controller, Get, UseInterceptors } from '@nestjs/common';
+import { ErrorHandlingInterceptor } from './path/to/interceptor';
+
+@Controller('some-route')
+@UseInterceptors(ErrorHandlingInterceptor)
+export class SomeController {
+  @Get()
+  someMethod() {
+    // Your method logic
+  }
+}
+```
+
 ## 高级特性和技巧
 
-## 与其他功能的集成使用
+引入依赖：
+
+```ts
+import { 
+  Injectable, 
+  NestInterceptor, 
+  ExecutionContext, 
+  CallHandler,
+  Inject,
+  forwardRef,
+  Scope,
+  Optional,
+  HttpException,
+  HttpStatus
+} from '@nestjs/common';
+import { 
+  Observable, 
+  from, 
+  throwError,
+  of,
+  defer
+} from 'rxjs';
+import { 
+  map, 
+  catchError, 
+  mergeMap,
+  tap,
+  retryWhen,
+  delay,
+  take
+} from 'rxjs/operators';
+import { Reflector } from '@nestjs/core';
+import { 
+  REQUEST,
+  ModuleRef 
+} from '@nestjs/core';
+```
+
+### 异步拦截器实现
+
+异步拦截器允许我们在拦截器中处理异步操作，比如从数据库获取数据或调用外部服务。
+
+```ts
+@Injectable()
+export class AsyncOperationInterceptor implements NestInterceptor {
+  constructor(
+    private readonly moduleRef: ModuleRef,
+    @Inject(REQUEST) private readonly request: Request
+  ) {}
+
+  async intercept(
+    context: ExecutionContext, 
+    next: CallHandler
+  ): Promise<Observable<any>> {
+    // 异步获取用户信息
+    const user = await this.loadUserData();
+    
+    // 异步加载配置
+    const config = await this.loadConfiguration();
+
+    // 使用 defer 来处理异步操作
+    return defer(async () => {
+      // 前置异步操作
+      await this.beforeRequest(user, config);
+
+      return next.handle().pipe(
+        mergeMap(async (data) => {
+          // 后置异步操作
+          const enrichedData = await this.enrichResponse(data, user);
+          return enrichedData;
+        })
+      );
+    });
+  }
+
+  private async loadUserData(): Promise<any> {
+    const userService = await this.moduleRef.resolve('UserService');
+    return userService.findByRequest(this.request);
+  }
+
+  private async loadConfiguration(): Promise<any> {
+    const configService = await this.moduleRef.resolve('ConfigService');
+    return configService.getConfig();
+  }
+
+  private async beforeRequest(user: any, config: any): Promise<void> {
+    // 执行请求前的异步操作
+    await this.validateUserPermissions(user, config);
+  }
+
+  private async enrichResponse(data: any, user: any): Promise<any> {
+    // 扩充响应数据
+    return {
+      ...data,
+      userContext: user,
+      timestamp: new Date()
+    };
+  }
+
+  private async validateUserPermissions(user: any, config: any): Promise<void> {
+    if (!user.permissions.includes(config.requiredPermission)) {
+      throw new HttpException('Permission denied', HttpStatus.FORBIDDEN);
+    }
+  }
+}
+```
+
+### 依赖注入高级用法
+
+我们可以在拦截器中使用 Nest.js 的高级依赖注入特性。
+
+```ts
+@Injectable({ scope: Scope.REQUEST })
+export class AdvancedDIInterceptor implements NestInterceptor {
+  constructor(
+    private readonly reflector: Reflector,
+    @Optional() private readonly logger?: LoggerService,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService?: UserService
+  ) {}
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    // 使用反射获取元数据
+    const roles = this.reflector.get<string[]>('roles', context.getHandler());
+    const requiredPermissions = this.reflector.get<string[]>(
+      'permissions', 
+      context.getClass()
+    );
+
+    return next.handle().pipe(
+      tap(data => {
+        // 使用可选注入的 logger
+        if (this.logger) {
+          this.logger.log({
+            roles,
+            requiredPermissions,
+            data
+          });
+        }
+      }),
+      mergeMap(async (data) => {
+        // 使用循环引用注入的服务
+        if (this.userService) {
+          const userDetails = await this.userService.enrichUserData(data);
+          return { ...data, ...userDetails };
+        }
+        return data;
+      })
+    );
+  }
+}
+```
+
+### 高级错误处理
+
+实现一个带有重试机制和详细错误处理的拦截器。
+
+```ts
+@Injectable()
+export class AdvancedErrorHandlingInterceptor implements NestInterceptor {
+  private readonly maxRetries = 3;
+  private readonly initialRetryDelay = 1000;
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    return next.handle().pipe(
+      retryWhen(errors => 
+        errors.pipe(
+          mergeMap((error, index) => {
+            const retryAttempt = index + 1;
+
+            // 根据错误类型决定是否重试
+            if (this.isRetryableError(error) && retryAttempt <= this.maxRetries) {
+              const delay = this.calculateRetryDelay(retryAttempt);
+              return of(error).pipe(delay(delay));
+            }
+
+            return throwError(() => this.enhanceError(error));
+          })
+        )
+      ),
+      catchError(error => {
+        const enhancedError = this.createDetailedError(error, context);
+        return throwError(() => enhancedError);
+      })
+    );
+  }
+
+  private isRetryableError(error: any): boolean {
+    // 判断错误是否可重试
+    return (
+      error.status === HttpStatus.SERVICE_UNAVAILABLE ||
+      error.code === 'NETWORK_ERROR' ||
+      error instanceof TimeoutError
+    );
+  }
+
+  private calculateRetryDelay(attempt: number): number {
+    // 实现指数退避算法
+    return this.initialRetryDelay * Math.pow(2, attempt - 1);
+  }
+
+  private enhanceError(error: any): HttpException {
+    const errorResponse = {
+      statusCode: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      message: error.message,
+      timestamp: new Date().toISOString(),
+      correlationId: this.generateCorrelationId(),
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      context: {
+        name: error.name,
+        code: error.code
+      }
+    };
+
+    return new HttpException(errorResponse, errorResponse.statusCode);
+  }
+
+  private createDetailedError(error: any, context: ExecutionContext): Error {
+    const request = context.switchToHttp().getRequest();
+    return {
+      ...error,
+      request: {
+        url: request.url,
+        method: request.method,
+        headers: request.headers
+      }
+    };
+  }
+
+  private generateCorrelationId(): string {
+    return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+}
+```
+
+### 高级状态管理
+
+实现一个可以在请求生命周期中管理状态的拦截器。
+
+```ts
+@Injectable({ scope: Scope.REQUEST })
+export class StateManagementInterceptor implements NestInterceptor {
+  private readonly state = new Map<string, any>();
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const requestId = this.generateRequestId();
+    
+    // 初始化请求状态
+    this.initializeRequestState(requestId, context);
+
+    return next.handle().pipe(
+      tap({
+        next: (data) => {
+          // 更新状态
+          this.updateState(requestId, 'response', data);
+          this.updateState(requestId, 'completed', true);
+        },
+        error: (error) => {
+          // 错误状态处理
+          this.updateState(requestId, 'error', error);
+          this.updateState(requestId, 'completed', false);
+        },
+        finalize: () => {
+          // 清理状态
+          this.cleanupState(requestId);
+        }
+      }),
+      map(data => {
+        // 在响应中包含状态信息
+        return {
+          ...data,
+          state: this.getRequestState(requestId)
+        };
+      })
+    );
+  }
+
+  private initializeRequestState(requestId: string, context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest();
+    this.state.set(requestId, {
+      startTime: Date.now(),
+      request: {
+        method: request.method,
+        url: request.url,
+        params: request.params,
+        query: request.query,
+        body: request.body
+      },
+      completed: false,
+      processing: true
+    });
+  }
+
+  private updateState(requestId: string, key: string, value: any) {
+    const currentState = this.state.get(requestId) || {};
+    this.state.set(requestId, {
+      ...currentState,
+      [key]: value,
+      lastUpdated: Date.now()
+    });
+  }
+
+  private getRequestState(requestId: string): any {
+    return this.state.get(requestId);
+  }
+
+  private cleanupState(requestId: string) {
+    // 设置延迟清理，以便其他拦截器可以访问状态
+    setTimeout(() => {
+      this.state.delete(requestId);
+    }, 5000);
+  }
+
+  private generateRequestId(): string {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+}
+```
