@@ -69,8 +69,27 @@ ollama create DeepSeek-R1-Distill-Qwen-7B -f ./Modelfile
 执行成功后，使用命令列出已安装的模型：
 
 ```
-ollama l
+ollama list
 ```
 
 ![image-20250218181826360](https://s2.loli.net/2025/02/18/LScWUBkEthaKGfw.png)
 
+在命令行中运行模型：
+
+```bash
+ollama run  qwen2.5-coder-7b-instruct-q5_k_m.gguf:latest
+```
+
+![image-20250314114547229](https://s2.loli.net/2025/03/14/TSwvYxH6elUK1t4.png)
+
+## ollama模型下载路径更改
+
+变量名设置为：OLLAMA_MODELS，变量值设置为D:\LLM\OllamaLLM\models，或者你自己建一个目录。
+
+![image-20250314144547841](https://s2.loli.net/2025/03/14/J71AqR9WYpSmOco.png)
+
+> 参考文章：
+>
+> [浅谈人工智能之基于ollama的常见变量设置_ollama环境变量-CSDN博客](https://blog.csdn.net/u012151594/article/details/142062199)
+>
+> [浅谈人工智能之Windows：基于ollama进行本地化大模型部署_windows ollama使用本地大语言模型-CSDN博客](https://samzhang.blog.csdn.net/article/details/141870665)
