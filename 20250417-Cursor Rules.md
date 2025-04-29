@@ -441,3 +441,4 @@ Yolo Mode: [YOLO_MODE]
 - Pursue innovative thinking over habitual repetition
 - Break cognitive limitations, mobilize all computational resources 
 - ZH-CN ONLY
+- 代码案例需要有完整的上下文
