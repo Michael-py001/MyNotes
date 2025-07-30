@@ -118,6 +118,20 @@ git config --global pull.rebase true    # 默认rebase
 
 - 适用场景：适合对历史极度敏感、只允许线性提交的场景（如主分支保护）。
 
+#### 图示理解
+
+```mermaid
+graph TD
+  A("远程: A-B-C") --> B("本地: A-B-D")
+  B --> C("git pull --no-rebase"):::merge
+  B --> D("git pull --rebase"):::rebase
+  B --> E("git pull --ff-only"):::ffonly
+
+  classDef merge fill:#f9f,stroke:#333,stroke-width:2px;
+  classDef rebase fill:#bbf,stroke:#333,stroke-width:2px;
+  classDef ffonly fill:#bfb,stroke:#333,stroke-width:2px;
+```
+
 
 
 #### 总结
