@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="860" height="240" viewBox="0 0 860 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="flowGrad" x1="60" y1="70" x2="780" y2="70" gradientUnits="userSpaceOnUse">
+      <!-- 示例：head=0.6, tail=0.2 -> tailStart=0.4 -->
+      <stop offset="0%" stop-color="rgba(0,229,255,0)" />
+      <stop offset="40%" stop-color="rgba(0,229,255,0)" />
+      <stop offset="60%" stop-color="#00E5FF" />
+      <stop offset="60.01%" stop-color="rgba(0,229,255,0)" />
+      <stop offset="100%" stop-color="rgba(0,229,255,0)" />
+    </linearGradient>
+    <style>
+      .axis { stroke: #333; stroke-width: 1; }
+      .tick { stroke: #888; stroke-width: 1; }
+      .label { font: 12px sans-serif; fill: #333; }
+      .title { font: 14px sans-serif; fill: #111; font-weight: bold; }
+      .hint { font: 12px sans-serif; fill: #555; }
+      .guide { stroke: #ff6a00; stroke-width: 1.5; stroke-dasharray: 4 4; }
+      .brace { stroke: #6a5acd; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <!-- 标题与说明 -->
+  <text x="60" y="26" class="title">progress/tail 渐变窗口示意（示例：head = 0.6, tail = 0.2, tailStart = 0.4）</text>
+  <text x="60" y="48" class="hint">说明：整条线归一化为 [0,1]。亮色窗口区间为 [tailStart, head]，其余为淡色/透明。</text>
+
+  <!-- 渐变条背景与边框 -->
+  <rect x="60" y="70" width="720" height="30" fill="#f5f7fa" stroke="#ccd5e0" stroke-width="1" rx="4"/>
+  <!-- 渐变条 -->
+  <rect x="60" y="70" width="720" height="30" fill="url(#flowGrad)" rx="4"/>
+
+  <!-- 参考导线：tailStart 与 head -->
+  <!-- tailStart at 40%: x = 60 + 0.4 * 720 = 348 -->
+  <line x1="348" y1="60" x2="348" y2="120" class="guide" />
+  <text x="332" y="126" class="label">tailStart=0.4</text>
+
+  <!-- head at 60%: x = 60 + 0.6 * 720 = 492 -->
+  <line x1="492" y1="60" x2="492" y2="120" class="guide" />
+  <text x="484" y="126" class="label">head=0.6</text>
+
+  <!-- 表示 tail 长度的箭线标注（避免文字重叠，放在更下方） -->
+  <line x1="348" y1="160" x2="492" y2="160" stroke="#6a5acd" stroke-width="1.5" />
+  <polygon points="348,160 356,156 356,164" fill="#6a5acd" />
+  <polygon points="492,160 484,156 484,164" fill="#6a5acd" />
+  <text x="402" y="178" class="label" fill="#6a5acd">tail = 0.2</text>
+
+  <!-- 底部 0~1 轴线与刻度（整体下移，避免与上方元素干涉） -->
+  <line x1="60" y1="210" x2="780" y2="210" class="axis" />
+  <!-- 0% tick -->
+  <line x1="60" y1="206" x2="60" y2="214" class="tick" />
+  <text x="52" y="228" class="label">0</text>
+  <!-- 40% tick -->
+  <line x1="348" y1="206" x2="348" y2="214" class="tick" />
+  <text x="336" y="228" class="label">0.4</text>
+  <!-- 60% tick -->
+  <line x1="492" y1="206" x2="492" y2="214" class="tick" />
+  <text x="480" y="228" class="label">0.6</text>
+  <!-- 100% tick -->
+  <line x1="780" y1="206" x2="780" y2="214" class="tick" />
+  <text x="770" y="228" class="label">1</text>
+</svg>

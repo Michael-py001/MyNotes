@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="320" viewBox="0 0 900 320">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#00E5FF" />
+    </marker>
+    <linearGradient id="trailGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0" />
+      <stop offset="50%" stop-color="#00E5FF" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 标题 -->
+  <text x="20" y="30" font-size="20" font-weight="600" fill="#222">Cesium 流动线（PolylineTrail）示意</text>
+
+  <!-- 背景面板 -->
+  <rect x="10" y="40" width="880" height="210" rx="10" ry="10" fill="#0b1020" stroke="#1e2945"/>
+
+  <!-- 流动线主体：曲线路径 + 光带 -->
+  <path id="route" d="M 80 220 C 200 60, 380 260, 520 140 S 820 140, 830 210" fill="none" stroke="url(#trailGradient)" stroke-width="16" filter="url(#glow)"/>
+  <path d="M 80 220 C 200 60, 380 260, 520 140 S 820 140, 830 210" fill="none" stroke="#08314a" stroke-width="2"/>
+
+  <!-- 方向箭头（表示纹理沿线滚动方向） -->
+  <path d="M 140 200 L 210 170" stroke="#00E5FF" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 300 160 L 360 200" stroke="#00E5FF" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 480 170 L 550 150" stroke="#00E5FF" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 660 160 L 720 180" stroke="#00E5FF" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- 注释：trailImage -->
+  <rect x="40" y="260" width="160" height="40" rx="6" fill="#152238" stroke="#274472"/>
+  <text x="50" y="285" font-size="14" fill="#9ecbff">trailImage（流动纹理）</text>
+  <!-- 纹理缩略示意 -->
+  <rect x="210" y="262" width="120" height="36" rx="4" fill="url(#trailGradient)" stroke="#274472"/>
+
+  <!-- 注释：color -->
+  <rect x="350" y="260" width="120" height="40" rx="6" fill="#152238" stroke="#274472"/>
+  <text x="360" y="285" font-size="14" fill="#9ecbff">color（基色）</text>
+  <rect x="470" y="268" width="24" height="24" rx="4" fill="#00E5FF" stroke="#274472"/>
+
+  <!-- 注释：duration -->
+  <rect x="520" y="260" width="170" height="40" rx="6" fill="#152238" stroke="#274472"/>
+  <text x="530" y="285" font-size="14" fill="#9ecbff">duration（周期/速度）</text>
+  <g fill="#9ecbff" font-size="12">
+    <text x="700" y="283">数值越小</text>
+    <text x="700" y="298">滚动越快</text>
+  </g>
+
+  <!-- 代码关键片段框 -->
+  <rect x="720" y="50" width="150" height="80" rx="8" fill="#152238" stroke="#274472"/>
+  <text x="730" y="70" font-family="monospace" font-size="12" fill="#cde3ff">new Cesium</text>
+  <text x="730" y="86" font-family="monospace" font-size="12" fill="#cde3ff">.PolylineTrail</text>
+  <text x="730" y="102" font-family="monospace" font-size="12" fill="#cde3ff">MaterialProperty</text>
+
+  <!-- 说明文字 -->
+  <g fill="#b8c7e0" font-size="13">
+    <text x="30" y="70">材质通过时间驱动让纹理沿折线滚动，形成“流光/流动”效果。</text>
+    <text x="30" y="90">关键入参：trailImage（纹理）、color（基色）、duration（周期/速度）。</text>
+  </g>
+</svg>
